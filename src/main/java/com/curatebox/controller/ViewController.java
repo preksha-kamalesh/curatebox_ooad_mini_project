@@ -2,13 +2,16 @@ package com.curatebox.controller;
 
 import com.curatebox.dto.CustomerPreferenceDTO;
 import com.curatebox.model.Customer;
+import com.curatebox.model.CustomerPreference;
 import com.curatebox.model.PreferenceOption;
 import com.curatebox.model.Subscription;
 import com.curatebox.repository.PreferenceOptionRepository;
 import com.curatebox.service.CustomerService;
 import com.curatebox.service.SubscriptionService;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,22 +70,61 @@ public class ViewController {
     @GetMapping("/customers/{id}/preferences")
     public String customerPreferences(@PathVariable Long id, Model model) {
         List<PreferenceOption> options = preferenceOptionRepository.findAll();
+        List<CustomerPreference> currentPreferences = customerService.getCustomerPreferences(id);
+        Map<Long, Boolean> selectedByOptionId = new HashMap<>();
+        for (CustomerPreference currentPreference : currentPreferences) {
+            if (currentPreference.getPreferenceOption() != null) {
+                selectedByOptionId.put(currentPreference.getPreferenceOption().getPreferenceId(), currentPreference.isLike());
+            }
+        }
+
+        PreferenceForm preferenceForm = new PreferenceForm();
+        List<PreferenceChoice> choices = new ArrayList<>();
+        for (PreferenceOption option : options) {
+            PreferenceChoice choice = new PreferenceChoice();
+            choice.setPreferenceOptionId(option.getPreferenceId());
+            choice.setSelection(selectedByOptionId.getOrDefault(option.getPreferenceId(), true) ? "like" : "dislike");
+            choices.add(choice);
+        }
+        preferenceForm.setPreferences(choices);
+
         model.addAttribute("customer", customerService.getCustomerById(id));
         model.addAttribute("options", options);
+        model.addAttribute("preferenceForm", preferenceForm);
         return "customers/preferences";
     }
 
     @PostMapping("/customers/{id}/preferences")
     public String updatePreferences(@PathVariable Long id, @ModelAttribute PreferenceForm preferenceForm, RedirectAttributes redirectAttributes) {
-        List<CustomerPreferenceDTO> dtos = new ArrayList<>();
-        for (PreferenceChoice choice : preferenceForm.getPreferences()) {
-            CustomerPreferenceDTO dto = new CustomerPreferenceDTO();
-            dto.setPreferenceOptionId(choice.getPreferenceOptionId());
-            dto.setLike("like".equalsIgnoreCase(choice.getSelection()));
-            dtos.add(dto);
+        try {
+            if (preferenceForm.getPreferences() == null || preferenceForm.getPreferences().isEmpty()) {
+                throw new IllegalArgumentException("No preferences were submitted.");
+            }
+
+            List<CustomerPreferenceDTO> dtos = new ArrayList<>();
+            for (PreferenceChoice choice : preferenceForm.getPreferences()) {
+                if (choice.getPreferenceOptionId() == null) {
+                    throw new IllegalArgumentException("Invalid preference option id.");
+                }
+                if (choice.getSelection() == null || (!"like".equalsIgnoreCase(choice.getSelection())
+                        && !"dislike".equalsIgnoreCase(choice.getSelection()))) {
+                    throw new IllegalArgumentException("Invalid preference selection.");
+                }
+
+                CustomerPreferenceDTO dto = new CustomerPreferenceDTO();
+                dto.setPreferenceOptionId(choice.getPreferenceOptionId());
+                dto.setLike("like".equalsIgnoreCase(choice.getSelection()));
+                dtos.add(dto);
+            }
+
+            customerService.updatePreferences(id, dtos);
+            redirectAttributes.addFlashAttribute("successMessage", "Preferences updated successfully.");
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Could not update preferences. Please try again.");
         }
-        customerService.updatePreferences(id, dtos);
-        redirectAttributes.addFlashAttribute("successMessage", "Preferences updated successfully.");
+
         return "redirect:/customers/" + id + "/preferences";
     }
 
@@ -95,23 +137,38 @@ public class ViewController {
 
     @PostMapping("/subscriptions/{id}/pause")
     public String pauseSubscription(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        Subscription subscription = subscriptionService.pauseSubscription(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Subscription paused successfully.");
-        return "redirect:/customers/" + subscription.getCustomer().getCustomerId() + "/subscription";
+        try {
+            Subscription subscription = subscriptionService.pauseSubscription(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Subscription paused successfully.");
+            return "redirect:/customers/" + subscription.getCustomer().getCustomerId() + "/subscription";
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/customers/" + subscriptionService.getSubscription(id).getCustomer().getCustomerId() + "/subscription";
+        }
     }
 
     @PostMapping("/subscriptions/{id}/resume")
     public String resumeSubscription(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        Subscription subscription = subscriptionService.resumeSubscription(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Subscription resumed successfully.");
-        return "redirect:/customers/" + subscription.getCustomer().getCustomerId() + "/subscription";
+        try {
+            Subscription subscription = subscriptionService.resumeSubscription(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Subscription resumed successfully.");
+            return "redirect:/customers/" + subscription.getCustomer().getCustomerId() + "/subscription";
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/customers/" + subscriptionService.getSubscription(id).getCustomer().getCustomerId() + "/subscription";
+        }
     }
 
     @PostMapping("/subscriptions/{id}/cancel")
     public String cancelSubscription(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        Subscription subscription = subscriptionService.cancelSubscription(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Subscription cancelled successfully.");
-        return "redirect:/customers/" + subscription.getCustomer().getCustomerId() + "/subscription";
+        try {
+            Subscription subscription = subscriptionService.cancelSubscription(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Subscription cancelled successfully.");
+            return "redirect:/customers/" + subscription.getCustomer().getCustomerId() + "/subscription";
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/customers/" + subscriptionService.getSubscription(id).getCustomer().getCustomerId() + "/subscription";
+        }
     }
 
     public static class PreferenceForm {

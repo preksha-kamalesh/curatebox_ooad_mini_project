@@ -42,6 +42,83 @@ This ownership was end-to-end (model, repository, service, controller, and UI), 
 
 ---
 
+## Analysis and Design Models (2 Marks)
+To directly fulfill the 2 marks for 'Analysis and Design Models', here are the required modeling diagrams for my specific use-cases and the implemented State Pattern.
+
+### Domain Class Diagram
+```mermaid
+classDiagram
+    class Customer {
+        -Long customerId
+        -String firstName
+        -String lastName
+        -String email
+        -String shippingAddress
+    }
+    class Subscription {
+        -Long subscriptionId
+        -String planType
+        -SubscriptionStatus status
+        -LocalDate startDate
+        -LocalDate endDate
+        +pause()
+        +resume()
+        +cancel()
+    }
+    class CustomerPreference {
+        -Long preferenceId
+        -boolean isLike
+    }
+    class PreferenceOption {
+        -Long preferenceId
+        -String itemName
+        -String description
+    }
+    
+    Customer "1" -- "1" Subscription : has >
+    Customer "1" -- "*" CustomerPreference : defines >
+    CustomerPreference "*" -- "1" PreferenceOption : references >
+```
+
+### State Design Pattern Diagram
+```mermaid
+classDiagram
+    class Subscription {
+        -SubscriptionState state
+        +pause()
+        +resume()
+        +cancel()
+    }
+    class SubscriptionState {
+        <<interface>>
+        +pause(Subscription context)
+        +resume(Subscription context)
+        +cancel(Subscription context)
+    }
+    class ActiveState {
+        +pause()
+        +resume()
+        +cancel()
+    }
+    class PausedState {
+        +pause()
+        +resume()
+        +cancel()
+    }
+    class CancelledState {
+        +pause()
+        +resume()
+        +cancel()
+    }
+    
+    Subscription "1" *-- "1" SubscriptionState : delegates behavior to >
+    SubscriptionState <|.. ActiveState : implements
+    SubscriptionState <|.. PausedState : implements
+    SubscriptionState <|.. CancelledState : implements
+```
+
+---
+
 ## Technical Evidence (My Module)
 
 ### Domain Model (Entity Layer)
@@ -89,8 +166,8 @@ This satisfies the “Use of MVC Architecture Pattern” criterion.
 ## Design Pattern + Principle Justification (3 Marks)
 
 ### Design Pattern Contribution
-I integrated my module with the project’s Strategy-based curation flow by ensuring customer preferences and subscription states are represented in a way that can be consumed by curation logic (preference-driven behavior selection at runtime).  
-Supporting files: Customer, CustomerPreference, Subscription, CustomerService.
+**State Design Pattern**: I implemented the State Pattern to accurately and safely manage the lifecycle of a `Subscription`. Instead of using simple status manipulations spread across the `SubscriptionService`, the `Subscription` entity delegates behavior (`pause()`, `resume()`, `cancel()`) to a dedicated `SubscriptionState` interface. Concrete state classes (`ActiveState`, `PausedState`, `CancelledState`) encapsulate the specific logic and transition rules required for each state, ensuring illegal state changes (e.g., attempting to resume a cancelled subscription) are natively prevented.
+Supporting files: `Subscription`, `SubscriptionState`, `ActiveState`, `PausedState`, `CancelledState`.
 
 ### Design Principle Contribution
 I applied SRP (Single Responsibility Principle):

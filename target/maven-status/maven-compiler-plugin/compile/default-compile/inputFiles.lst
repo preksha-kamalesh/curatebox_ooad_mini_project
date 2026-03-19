@@ -24,6 +24,10 @@
 /Users/prekshakreddy/Desktop/curatebox_ooad_mini_project/src/main/java/com/curatebox/model/Subscription.java
 /Users/prekshakreddy/Desktop/curatebox_ooad_mini_project/src/main/java/com/curatebox/model/SubscriptionStatus.java
 /Users/prekshakreddy/Desktop/curatebox_ooad_mini_project/src/main/java/com/curatebox/model/Supplier.java
+/Users/prekshakreddy/Desktop/curatebox_ooad_mini_project/src/main/java/com/curatebox/model/state/ActiveState.java
+/Users/prekshakreddy/Desktop/curatebox_ooad_mini_project/src/main/java/com/curatebox/model/state/CancelledState.java
+/Users/prekshakreddy/Desktop/curatebox_ooad_mini_project/src/main/java/com/curatebox/model/state/PausedState.java
+/Users/prekshakreddy/Desktop/curatebox_ooad_mini_project/src/main/java/com/curatebox/model/state/SubscriptionState.java
 /Users/prekshakreddy/Desktop/curatebox_ooad_mini_project/src/main/java/com/curatebox/repository/AdminRepository.java
 /Users/prekshakreddy/Desktop/curatebox_ooad_mini_project/src/main/java/com/curatebox/repository/BoxContentRepository.java
 /Users/prekshakreddy/Desktop/curatebox_ooad_mini_project/src/main/java/com/curatebox/repository/CustomerPreferenceRepository.java

@@ -1,3 +1,4 @@
+com/curatebox/model/state/PausedState.class
 com/curatebox/model/Admin.class
 com/curatebox/model/PreferenceOption.class
 com/curatebox/service/BoxService.class
@@ -9,6 +10,7 @@ com/curatebox/repository/AdminRepository.class
 com/curatebox/repository/CustomerRepository.class
 com/curatebox/repository/SupplierRepository.class
 com/curatebox/model/Customer.class
+com/curatebox/model/state/SubscriptionState.class
 com/curatebox/service/SupplierService.class
 com/curatebox/dto/SubscriptionDTO.class
 com/curatebox/repository/ProductRepository.class
@@ -33,6 +35,7 @@ com/curatebox/controller/ViewController$PreferenceForm.class
 com/curatebox/service/InventoryService.class
 com/curatebox/repository/SubscriptionRepository.class
 com/curatebox/repository/PreferenceOptionRepository.class
+com/curatebox/model/state/CancelledState.class
 com/curatebox/model/SubscriptionStatus.class
 com/curatebox/dto/ProductDTO.class
 com/curatebox/model/Product.class
@@ -46,4 +49,5 @@ com/curatebox/service/factory/BoxFactory.class
 com/curatebox/service/SubscriptionService.class
 com/curatebox/model/Subscription.class
 com/curatebox/repository/CustomerPreferenceRepository.class
+com/curatebox/model/state/ActiveState.class
 com/curatebox/service/strategy/PreferenceBasedCuration.class
