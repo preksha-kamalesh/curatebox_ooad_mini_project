@@ -145,7 +145,9 @@ classDiagram
 3. customers/preferences
 4. subscriptions/status
 
-### MVC Architecture Justification (2 Marks)
+---
+
+## MVC Architecture Justification 
 
 My implementation follows MVC clearly:
 1. Model: entities represent persistent business data and relationships.
@@ -157,7 +159,7 @@ This satisfies the "Use of MVC Architecture Pattern" criterion.
 
 ---
 
-## Design Pattern + Principle Justification (3 Marks)
+## Design Pattern + Principle Justification 
 
 ### Design Pattern Contribution
 **State Design Pattern**: I implemented the State Pattern to accurately and safely manage the lifecycle of a `Subscription`. Instead of using simple status manipulations spread across the `SubscriptionService`, the `Subscription` entity delegates behavior (`pause()`, `resume()`, `cancel()`) to a dedicated `SubscriptionState` interface. Concrete state classes (`ActiveState`, `PausedState`, `CancelledState`) encapsulate the specific logic and transition rules required for each state, ensuring illegal state changes (e.g., attempting to resume a cancelled subscription) are natively prevented.
@@ -174,7 +176,7 @@ This separation improves maintainability and testability, and aligns with the OO
 
 ---
 
-## Demo Script (for Viva: 3 Marks)
+## Demo Script 
 
 1. Open dashboard and navigate to Customers page.
 2. Edit Customer Profile and save.
