@@ -20,6 +20,7 @@ public class Supplier {
 
     private String supplierName;
     private String contactEmail;
+    private String contactPhone;
 
     @JsonIgnore
     @OneToMany(mappedBy = "supplier")
@@ -47,6 +48,14 @@ public class Supplier {
 
     public void setContactEmail(String contactEmail) {
         this.contactEmail = contactEmail;
+    }
+
+    public String getContactPhone() {
+        return contactPhone;
+    }
+
+    public void setContactPhone(String contactPhone) {
+        this.contactPhone = contactPhone;
     }
 
     public List<Product> getProducts() {

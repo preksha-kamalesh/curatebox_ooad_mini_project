@@ -3,6 +3,7 @@ package com.curatebox.dto;
 public class SupplierDTO {
     private String supplierName;
     private String contactEmail;
+    private String contactPhone;
 
     public String getSupplierName() {
         return supplierName;
@@ -18,5 +19,13 @@ public class SupplierDTO {
 
     public void setContactEmail(String contactEmail) {
         this.contactEmail = contactEmail;
+    }
+
+    public String getContactPhone() {
+        return contactPhone;
+    }
+
+    public void setContactPhone(String contactPhone) {
+        this.contactPhone = contactPhone;
     }
 }

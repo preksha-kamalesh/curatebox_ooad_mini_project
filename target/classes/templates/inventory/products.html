@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Products - CurateBox</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Product Card Styling */
+        .product-card {
+            border: none;
+            border-radius: 12px;
+            padding: 2rem;
+            background: white;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+            transform-origin: left;
+        }
+        
+        .product-card:hover {
+            box-shadow: 0 12px 28px rgba(102, 126, 234, 0.15);
+            transform: translateY(-6px);
+        }
+        
+        .product-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+        }
+
+        .product-title-section h5 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-description {
+            color: #6b7280;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* Stock Bar - Enhanced */
+        .stock-bar {
+            height: 10px;
+            background-color: #e5e7eb;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .stock-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.6s ease;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .stock-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        .stock-fill.low {
+            background: linear-gradient(90deg, #f5576c 0%, #f093fb 100%);
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .stock-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .stock-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stock-label {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .stock-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .category-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.35rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Supplier Section */
+        .supplier-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #f0f1f5 100%);
+            padding: 1.2rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #667eea;
+        }
+
+        .supplier-section .small {
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .supplier-name {
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.3rem;
+        }
+
+        .supplier-email {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 0.6rem;
+            margin-top: auto;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 0.7rem 0;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-update {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-update:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            color: white;
+        }
+
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(100, 116, 139, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #a85555 0%, #8b4545 100%);
+            color: white;
+        }
+
+        .btn-delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(168, 85, 85, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Page Header */
+        .page-header {
+            margin-bottom: 3rem;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            margin-top: 1rem;
+            letter-spacing: -0.5px;
+        }
+
+        /* Stat Cards Enhancement */
+        .stat-card {
+            transition: all 0.4s ease !important;
+            border: none !important;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+            border-radius: 10px;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .stat-card h4 {
+            font-size: 2.8rem;
+            font-weight: 900;
+            margin-bottom: 0.75rem;
+            letter-spacing: -1px;
+        }
+
+        .stat-card p {
+            font-size: 1.05rem;
+            font-weight: 600;
+            opacity: 0.98;
+            letter-spacing: 0.5px;
+        }
+
+        /* Toast Notification Styles */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+        .toast {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            min-width: 350px;
+            animation: slideIn 0.3s ease-out;
+            border-left: 4px solid #10b981;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        .toast.success {
+            border-left-color: #10b981;
+        }
+        .toast.alert {
+            border-left-color: #f59e0b;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        }
+        .toast.error {
+            border-left-color: #ef4444;
+        }
+        .toast-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        .toast-content h4 {
+            margin: 0 0 0.25rem 0;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .toast-content p {
+            margin: 0;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+        .toast.removing {
+            animation: slideOut 0.3s ease-out;
+        }
+
+        /* Grid Layout */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Modal Enhancements */
+        .modal-content {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px 12px 0 0;
+            padding: 1.5rem;
+        }
+
+        .modal-header .modal-title {
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-lg mt-5 mb-5">
+    <!-- Header -->
+    <div class="page-header mb-5">
+        <a href="/inventory" class="btn btn-outline-secondary mb-3" style="font-weight: 600; padding: 0.75rem 1.5rem; border-radius: 8px;">
+            <i class="fa-solid fa-arrow-left me-2"></i>Back to Inventory
+        </a>
+        <h1 class="display-4 fw-bold"><i class="fa-solid fa-boxes me-3"></i>Products</h1>
+        <p class="text-muted fs-6" style="margin-top: 0.5rem;">Manage your product inventory</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="row mb-5">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card" style="background: #e0e7ff; color: #3730a3; padding: 2rem; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1); border-left: 4px solid #6366f1;">
+                <h4 th:text="${products.size()}" style="color: #3730a3; margin-bottom: 0.5rem;">0</h4>
+                <p style="margin: 0; color: #6366f1; font-size: 0.95rem;"><i class="fa-solid fa-cubes me-2"></i>Total Products</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card" style="background: #cffafe; color: #0e7490; padding: 2rem; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(6, 182, 212, 0.1); border-left: 4px solid #0891b2;">
+                <h4 th:text="${inStockCount}" style="color: #0e7490; margin-bottom: 0.5rem;">0</h4>
+                <p style="margin: 0; color: #0891b2; font-size: 0.95rem;"><i class="fa-solid fa-check-circle me-2"></i>In Stock</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card" style="background: #fef3c7; color: #92400e; padding: 2rem; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(217, 119, 6, 0.1); border-left: 4px solid #d97706;">
+                <h4 th:text="${lowStockCount}" style="color: #92400e; margin-bottom: 0.5rem;">0</h4>
+                <p style="margin: 0; color: #d97706; font-size: 0.95rem;"><i class="fa-solid fa-exclamation-triangle me-2"></i>Low Stock</p>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card" style="background: #fee2e2; color: #7f1d1d; padding: 2rem; border-radius: 12px; text-align: center; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.1); border-left: 4px solid #dc2626;">
+                <h4 th:text="${outOfStockCount}" style="color: #7f1d1d; margin-bottom: 0.5rem;">0</h4>
+                <p style="margin: 0; color: #dc2626; font-size: 0.95rem;"><i class="fa-solid fa-ban me-2"></i>Out of Stock</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Product Button -->
+    <div class="mb-5">
+        <button class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#addProductModal" style="font-weight: 700; padding: 0.85rem 2rem; border-radius: 8px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
+            <i class="fa-solid fa-plus me-2"></i>Add New Product
+        </button>
+    </div>
+
+    <!-- Products Grid -->
+    <div th:if="${#lists.isEmpty(products)}" class="alert alert-info" style="border-radius: 12px; border: none; background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%); padding: 2rem;">
+        <div style="text-align: center;">
+            <i class="fa-solid fa-inbox" style="font-size: 3rem; color: #0369a1; margin-bottom: 1rem; opacity: 0.8;"></i>
+            <p style="margin: 0; color: #0c4a6e; font-weight: 600; font-size: 1.1rem;">No products available yet</p>
+            <p style="margin: 0.5rem 0 0 0; color: #0c4a6e; opacity: 0.8;">Click "Add New Product" to get started</p>
+        </div>
+    </div>
+
+    <div th:unless="${#lists.isEmpty(products)}" class="products-grid">
+        <div th:each="product : ${products}">
+            <div class="product-card">
+                <div class="product-header">
+                    <div class="product-title-section">
+                        <h5 th:text="${product.productName}">Product Name</h5>
+                        <p class="product-description" th:text="${product.description}">Description</p>
+                    </div>
+                </div>
+
+                <!-- Status Badge -->
+                <div style="margin-bottom: 1rem;">
+                    <span th:if="${product.stockQuantity > 10}" class="status-badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+                        <i class="fa-solid fa-check-circle me-1"></i>In Stock
+                    </span>
+                    <span th:if="${product.stockQuantity <= 10 && product.stockQuantity > 0}" class="status-badge" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
+                        <i class="fa-solid fa-exclamation-circle me-1"></i>Low Stock
+                    </span>
+                    <span th:if="${product.stockQuantity == 0}" class="status-badge" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white;">
+                        <i class="fa-solid fa-ban me-1"></i>Out of Stock
+                    </span>
+                </div>
+
+                <!-- Stock Info Section -->
+                <div class="stock-info">
+                    <div class="stock-item">
+                        <div class="stock-label">Stock</div>
+                        <div class="stock-value" th:text="${product.stockQuantity}">0</div>
+                    </div>
+                    <div style="width: 1px; background: #e5e7eb;"></div>
+                    <div class="stock-item">
+                        <div class="stock-label">Category</div>
+                        <div class="category-badge" th:text="${product.category}">Category</div>
+                    </div>
+                </div>
+
+                <!-- Stock Progress Bar -->
+                <div class="stock-bar">
+                    <div class="stock-fill" th:classappend="${product.stockQuantity <= 10} ? 'low' : ''"
+                         th:style="'width: ' + ${product.stockQuantity > 100 ? 100 : (product.stockQuantity < 0 ? 0 : product.stockQuantity)} + '%'">
+                    </div>
+                </div>
+
+                <!-- Supplier Info -->
+                <div th:if="${product.supplier}" class="supplier-section">
+                    <small class="text-muted"><i class="fa-solid fa-truck me-1"></i>Supplier Information</small>
+                    <div class="supplier-name" th:text="${product.supplier.supplierName}">Supplier Name</div>
+                    <small class="supplier-email" th:text="${product.supplier.contactEmail}">email@example.com</small>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn-action btn-update" data-bs-toggle="modal" th:data-bs-target="'#updateStockModal' + ${product.productId}">
+                        <i class="fa-solid fa-arrow-up-down"></i>Stock
+                    </button>
+                    <button class="btn-action btn-edit" data-bs-toggle="modal" th:data-bs-target="'#editProductModal' + ${product.productId}">
+                        <i class="fa-solid fa-edit"></i>Edit
+                    </button>
+                    <button class="btn-action btn-delete" 
+                            onclick="confirmDelete(this.id)" 
+                            th:id="'delBtn' + ${product.productId}"
+                            th:data-name="${product.productName}">
+                        <i class="fa-solid fa-trash"></i>Delete
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stock Update Modal for each product -->
+            <div class="modal fade" th:id="'updateStockModal' + ${product.productId}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title"><i class="fa-solid fa-arrow-up-down me-2"></i>Update Stock: <span th:text="${product.productName}">Product</span></h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form th:action="@{/api/products/{id}/stock(id=${product.productId})}" method="POST" style="display: none;" th:id="'stockForm' + ${product.productId}">
+                            <input type="hidden" name="quantity" th:id="'quantity' + ${product.productId}">
+                        </form>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Current Stock</label>
+                                <div style="padding: 1rem; background: linear-gradient(135deg, #f0f9ff 0%, #f0f4ff 100%); border-radius: 8px; border-left: 4px solid #667eea;">
+                                    <h5 style="margin: 0; color: #667eea; font-weight: 700;" th:text="${product.stockQuantity} + ' units'">0 units</h5>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">New Stock Quantity</label>
+                                <input type="number" class="form-control" th:id="'newStock' + ${product.productId}" placeholder="Enter new stock quantity" min="0">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" 
+                                    th:onclick="'updateProductStock(' + ${product.productId} + ', ' + ${product.stockQuantity} + ')'"
+                                    style="font-weight: 600; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                                <i class="fa-solid fa-save me-1"></i>Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Product Modal for each product -->
+            <div class="modal fade" th:id="'editProductModal' + ${product.productId}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title"><i class="fa-solid fa-edit me-2"></i>Edit Product</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Product Name</label>
+                                <input type="text" class="form-control" th:id="'editName' + ${product.productId}" th:value="${product.productName}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" th:id="'editDesc' + ${product.productId}" rows="3"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Category</label>
+                                <input type="text" class="form-control" th:id="'editCat' + ${product.productId}" th:value="${product.category}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label"><i class="fa-solid fa-truck me-2" style="color: #667eea;"></i>Supplier ID (Optional)</label>
+                                <input type="number" class="form-control" th:id="'editSupplierId' + ${product.productId}" th:value="${product.supplier?.supplierId}" placeholder="Leave blank for no supplier">
+                            </div>
+                            <input type="hidden" th:id="'descValue' + ${product.productId}" th:value="${product.description}">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-warning" onclick="editProduct(this.id)" th:id="'editBtn' + ${product.productId}" style="font-weight: 600; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border: none; color: white;">
+                                <i class="fa-solid fa-save me-1"></i>Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-plus me-2"></i>Add New Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addProductForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fa-solid fa-tag me-2" style="color: #667eea;"></i>Product Name <span style="color: #ef4444;">*</span></label>
+                        <input type="text" class="form-control" id="productName" placeholder="e.g., Almond Mix" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fa-solid fa-align-left me-2" style="color: #667eea;"></i>Description</label>
+                        <textarea class="form-control" id="description" placeholder="Product description" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fa-solid fa-folder me-2" style="color: #667eea;"></i>Category <span style="color: #ef4444;">*</span></label>
+                        <input type="text" class="form-control" id="category" placeholder="e.g., nuts, organic, spicy" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fa-solid fa-boxes-stacked me-2" style="color: #667eea;"></i>Initial Stock Quantity <span style="color: #ef4444;">*</span></label>
+                        <input type="number" class="form-control" id="stockQuantity" placeholder="0" min="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fa-solid fa-truck me-2" style="color: #667eea;"></i>Supplier ID (Optional)</label>
+                        <input type="number" class="form-control" id="supplierId" placeholder="Leave blank if no supplier">
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #e5e7eb; padding-top: 1.5rem;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="createProduct()" style="font-weight: 600; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
+                        <i class="fa-solid fa-plus me-1"></i>Create Product
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Toast Notification System
+    function showToast(title, message, type = 'success') {
+        const container = document.querySelector('.toast-container') || createToastContainer();
+        
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        let icon = '';
+        if (type === 'success') {
+            icon = '<i class="fa-solid fa-circle-check"></i>';
+        } else if (type === 'alert') {
+            icon = '<i class="fa-solid fa-exclamation-circle"></i>';
+        } else if (type === 'error') {
+            icon = '<i class="fa-solid fa-times-circle"></i>';
+        }
+        
+        toast.innerHTML = `
+            <div class="toast-icon">${icon}</div>
+            <div class="toast-content">
+                <h4>${title}</h4>
+                <p>${message}</p>
+            </div>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            toast.classList.add('removing');
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+    }
+
+    function createToastContainer() {
+        const container = document.createElement('div');
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+        return container;
+    }
+
+    function createProduct() {
+        const productName = document.getElementById('productName').value;
+        const description = document.getElementById('description').value;
+        const category = document.getElementById('category').value;
+        const stockQuantity = document.getElementById('stockQuantity').value;
+        const supplierId = document.getElementById('supplierId').value;
+
+        if (!productName || !category || !stockQuantity) {
+            showToast('❌ Error', 'Please fill in all required fields (Name, Category, Stock)', 'error');
+            return;
+        }
+
+        const payload = {
+            productName: productName,
+            description: description,
+            category: category,
+            stockQuantity: parseInt(stockQuantity),
+            supplierId: supplierId ? parseInt(supplierId) : null
+        };
+
+        console.log('Creating product with payload:', payload);
+
+        fetch('/api/products', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response ok:', response.ok);
+            
+            if (response.status === 201 || response.ok) {
+                return response.json().then(data => {
+                    console.log('Product created:', data);
+                    showToast('✅ Success', `Product "${productName}" created successfully!`, 'success');
+                    document.getElementById('addProductForm').reset();
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
+                    modal.hide();
+                    setTimeout(() => location.reload(), 1000);
+                });
+            } else if (response.status === 400) {
+                return response.text().then(text => {
+                    console.error('Bad request error:', text);
+                    showToast('❌ Error', 'Invalid product data: ' + text, 'error');
+                });
+            } else {
+                return response.text().then(text => {
+                    console.error('Error response:', text);
+                    showToast('❌ Error', `Failed to create product (Status: ${response.status})`, 'error');
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            showToast('❌ Error', 'Network error: ' + error.message, 'error');
+        });
+    }
+
+    function updateProductStock(productId, currentStock) {
+        const newStock = document.getElementById('newStock' + productId).value;
+
+        if (newStock === '') {
+            showToast('❌ Error', 'Please enter a stock quantity', 'error');
+            return;
+        }
+
+        const quantity = parseInt(newStock) - parseInt(currentStock);
+
+        console.log('Updating stock - Product ID:', productId, 'Current:', currentStock, 'New:', newStock, 'Delta:', quantity);
+
+        fetch(`/api/products/${productId}/stock`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ quantity: quantity })
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            
+            if (response.ok) {
+                let alertMsg = `Stock updated to ${newStock} units`;
+                let toastType = 'success';
+                
+                // Show low stock alert if applicable
+                if (parseInt(newStock) <= 10 && parseInt(newStock) > 0) {
+                    alertMsg = `⚠️ LOW STOCK ALERT! Stock now at ${newStock} units (threshold: 10)`;
+                    toastType = 'alert';
+                } else if (parseInt(newStock) === 0) {
+                    alertMsg = `🚨 OUT OF STOCK! Stock is now 0 units`;
+                    toastType = 'alert';
+                }
+
+                showToast('Stock Updated', alertMsg, toastType);
+                const modal = bootstrap.Modal.getInstance(document.getElementById('updateStockModal' + productId));
+                modal.hide();
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                return response.text().then(text => {
+                    console.error('Error response:', text);
+                    showToast('❌ Error', `Failed to update stock (Status: ${response.status})`, 'error');
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            showToast('❌ Error', 'Network error: ' + error.message, 'error');
+        });
+    }
+
+    function editProduct(buttonId) {
+        // Extract productId from buttonId (e.g., "editBtn1" -> "1")
+        const productId = buttonId.replace('editBtn', '');
+        const productName = document.getElementById('editName' + productId).value;
+        const description = document.getElementById('editDesc' + productId).value;
+        const category = document.getElementById('editCat' + productId).value;
+        const supplierId = document.getElementById('editSupplierId' + productId).value;
+
+        if (!productName || !category) {
+            showToast('❌ Error', 'Product Name and Category are required', 'error');
+            return;
+        }
+
+        const payload = {
+            productName: productName,
+            description: description,
+            category: category,
+            stockQuantity: 0,
+            supplierId: supplierId ? parseInt(supplierId) : null
+        };
+
+        console.log('Updating product:', productId, payload);
+
+        fetch(`/api/products/${productId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            if (response.ok) {
+                showToast('✅ Success', `Product "${productName}" updated successfully!`, 'success');
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editProductModal' + productId));
+                modal.hide();
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showToast('❌ Error', `Failed to update product (Status: ${response.status})`, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            showToast('❌ Error', 'Network error: ' + error.message, 'error');
+        });
+    }
+
+    function confirmDelete(buttonId) {
+        // Extract productId from buttonId (e.g., "delBtn1" -> "1")
+        const productId = buttonId.replace('delBtn', '');
+        const button = document.getElementById(buttonId);
+        const productName = button.getAttribute('data-name');
+        
+        if (confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
+            deleteProduct(productId, productName);
+        }
+    }
+
+    function deleteProduct(productId, productName) {
+        console.log('Deleting product:', productId);
+
+        fetch(`/api/products/${productId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                showToast('✅ Deleted', `Product "${productName}" has been deleted!`, 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                showToast('❌ Error', `Failed to delete product (Status: ${response.status})`, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            showToast('❌ Error', 'Network error: ' + error.message, 'error');
+        });
+    }
+
+    // Initialize modal handlers for populating textarea content
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get all edit product modals
+        const modals = document.querySelectorAll('[id^="editProductModal"]');
+        modals.forEach(modal => {
+            modal.addEventListener('show.bs.modal', function() {
+                const productId = this.id.replace('editProductModal', '');
+                // Get the description value from hidden input
+                const descValue = document.getElementById('descValue' + productId);
+                const descField = document.getElementById('editDesc' + productId);
+                if (descField && descValue) {
+                    // Copy value from hidden input to textarea
+                    descField.value = descValue.value;
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

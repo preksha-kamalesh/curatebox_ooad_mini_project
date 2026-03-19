@@ -40,9 +40,7 @@ This ownership was end-to-end (model, repository, service, controller, and UI), 
 - UI: Action button on subscription page
 - Outcome: transitions status to CANCELLED
 
----
-
-## Analysis and Design Models (2 Marks)
+### Analysis and Design Models (2 Marks)
 To directly fulfill the 2 marks for 'Analysis and Design Models', here are the required modeling diagrams for my specific use-cases and the implemented State Pattern.
 
 ### Domain Class Diagram
@@ -117,41 +115,37 @@ classDiagram
     SubscriptionState <|.. CancelledState : implements
 ```
 
----
+### Technical Evidence (My Module)
 
-## Technical Evidence (My Module)
-
-### Domain Model (Entity Layer)
+#### Domain Model (Entity Layer)
 1. Customer
 2. Subscription
 3. SubscriptionStatus
 4. CustomerPreference
 5. PreferenceOption
 
-### Repository Layer
+#### Repository Layer
 1. CustomerRepository
 2. SubscriptionRepository
 3. CustomerPreferenceRepository
 4. PreferenceOptionRepository
 
-### Service Layer (Business Logic)
+#### Service Layer (Business Logic)
 1. CustomerService
 2. SubscriptionService
 
-### Controller Layer (MVC)
+#### Controller Layer (MVC)
 1. CustomerController
 2. SubscriptionController
 3. ViewController
 
-### UI (Thymeleaf Views)
+#### UI (Thymeleaf Views)
 1. customers/list
 2. customers/edit
 3. customers/preferences
 4. subscriptions/status
 
----
-
-## MVC Architecture Justification (2 Marks)
+### MVC Architecture Justification (2 Marks)
 
 My implementation follows MVC clearly:
 1. Model: entities represent persistent business data and relationships.
@@ -159,7 +153,7 @@ My implementation follows MVC clearly:
 3. Controller: request mapping and response handling are in controllers only.
 4. Service: business logic and transactions are encapsulated in services, not in controllers.
 
-This satisfies the “Use of MVC Architecture Pattern” criterion.
+This satisfies the "Use of MVC Architecture Pattern" criterion.
 
 ---
 
@@ -190,6 +184,132 @@ This separation improves maintainability and testability, and aligns with the OO
 6. Click Resume → verify status changes to ACTIVE.
 7. Click Cancel → verify status changes to CANCELLED.
 8. Show corresponding API calls and responses for the same flow.
+
+---
+
+## Navyashree
+
+### Team Member Scope
+I was responsible for the complete implementation of the Product and Inventory Management module in CurateBox, specifically:
+1. Product Model
+2. Supplier Model
+3. InventoryService
+4. IInventoryObserver Interface
+5. ProductController
+
+This ownership was end-to-end (model, repository, service, controller, and UI), satisfying the policy that each student must own complete use cases rather than only frontend/backend parts.
+
+### Use Cases Owned by Me
+1. Manage Products
+- API: `GET /api/products` (list all products)
+- API: `POST /api/products` (create product)
+- API: `PUT /api/products/{id}` (update product)
+- API: `DELETE /api/products/{id}` (delete product)
+- UI: Products management page with elegant card design
+- Outcome: complete CRUD operations for inventory products
+
+2. Update Product Stock
+- API: `PUT /api/products/{id}/stock` (update stock quantity)
+- UI: Stock update modal with progress bar
+- Outcome: adjusts stock and triggers low-stock observer notifications
+
+3. Manage Suppliers
+- API: `GET /api/suppliers` (list all suppliers)
+- API: `POST /api/suppliers` (create supplier)
+- API: `PUT /api/suppliers/{id}` (update supplier with phone)
+- API: `DELETE /api/suppliers/{id}` (delete supplier)
+- UI: Suppliers management page with statistics
+- Outcome: complete CRUD operations for supplier management
+
+4. Low Stock Alerts (Observer Pattern)
+- InventoryService: Subject that notifies observers when stock ≤ 10 units
+- IInventoryObserver: Interface defining observer contract
+- LowStockAlertObserver: Implementation that logs low stock alerts
+- Outcome: automatic notifications when products reach critical stock levels
+
+5. Product-Supplier Relationships
+- API: Assigning suppliers to products during creation and editing
+- Service: Managing ManyToOne relationship between Product and Supplier
+- UI: Dropdown and input fields for supplier selection
+- Outcome: maintains referential integrity between products and suppliers
+
+### Analysis and Design Models
+
+### Observer Design Pattern Diagram
+```mermaid
+classDiagram
+    class InventoryService {
+        -List~IInventoryObserver~ observers
+        +registerObserver(observer)
+        +unregisterObserver(observer)
+        +notifyObservers()
+        +updateStock(productId, quantity)
+    }
+    class IInventoryObserver {
+        <<interface>>
+        +onLowStock(product)
+    }
+    class LowStockAlertObserver {
+        +onLowStock(product)
+    }
+    
+    InventoryService --> IInventoryObserver
+    IInventoryObserver <|.. LowStockAlertObserver
+```
+
+### Domain Class Diagram
+```mermaid
+classDiagram
+    class Product {
+        -Long productId
+        -String productName
+        -String description
+        -String category
+        -int stockQuantity
+        -Supplier supplier
+    }
+    class Supplier {
+        -Long supplierId
+        -String supplierName
+        -String contactEmail
+        -String contactPhone
+        -List~Product~ products
+    }
+    
+    Product "many" --> "one" Supplier : supplied by
+```
+
+### Technical Evidence (My Module)
+
+#### Domain Model (Entity Layer)
+1. Product
+2. Supplier
+
+#### Repository Layer
+1. ProductRepository
+2. SupplierRepository
+
+#### Service Layer (Business Logic)
+1. ProductService
+2. SupplierService
+3. InventoryService (Observer Pattern Implementation)
+
+#### Observer Pattern Components
+1. IInventoryObserver (Interface)
+2. LowStockAlertObserver (Implementation)
+
+#### Controller Layer (REST API)
+1. ProductController
+2. SupplierController
+
+#### UI (Thymeleaf Views)
+1. inventory/products
+2. inventory/suppliers
+3. inventory/dashboard
+
+#### DTOs (Data Transfer Objects)
+1. ProductDTO
+2. SupplierDTO
 
 ---
 
