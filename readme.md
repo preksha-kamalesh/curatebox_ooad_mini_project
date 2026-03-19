@@ -313,5 +313,51 @@ classDiagram
 1. ProductDTO
 2. SupplierDTO
 
+### MVC Architecture Justification
+
+My implementation follows MVC clearly:
+1. **Model**: Entity classes (Product, Supplier) represent persistent business data and relationships. ProductDTO and SupplierDTO serve as data transfer objects between layers.
+2. **View**: Thymeleaf templates (products.html, suppliers.html, dashboard.html) render product/supplier management forms, stock updates, and inventory statistics.
+3. **Controller**: Request mapping and response handling are strictly in ProductController and SupplierController. REST APIs return JSON responses for CRUD operations.
+4. **Service**: Business logic is encapsulated in ProductService, SupplierService, and InventoryService. All transaction management and data processing happens in the service layer, not in controllers.
+
+This satisfies the "Use of MVC Architecture Pattern" criterion by maintaining clear separation between presentation, business logic, and data access layers.
+
+---
+
+## Design Pattern + Principle Justification
+
+### Design Pattern Contribution
+**Observer Design Pattern**: I implemented the Observer Pattern to manage inventory notifications and low-stock alerts. InventoryService acts as the **Subject** that maintains a list of observers (IInventoryObserver implementations). When product stock falls below 10 units, InventoryService calls `notifyObservers()` which triggers `onLowStock()` methods on all registered observers. The LowStockAlertObserver implementation logs critical alerts. This design decouples inventory updates from notification logic, allowing multiple observers (email alerts, SMS, dashboard notifications) to be added without modifying core InventoryService code.
+
+Supporting files:
+- InventoryService (Subject with observer management)
+- IInventoryObserver (Observer interface)
+- LowStockAlertObserver (Concrete observer implementation)
+
+### Design Principle Contribution
+I applied **SRP (Single Responsibility Principle)**:
+1. **Entities** (Product, Supplier) only model data and core business entity behavior.
+2. **Repositories** (ProductRepository, SupplierRepository) only handle persistence access and queries.
+3. **Services** (ProductService, SupplierService, InventoryService) only contain business rules, transactions, and coordination logic.
+4. **Controllers** (ProductController, SupplierController) only map HTTP requests/responses and delegate to services.
+5. **Observer Interface** (IInventoryObserver) defines a single responsibility: handling low-stock notifications.
+
+This separation improves maintainability, testability, and extensibility. New features (like email notifications) can be added by creating new observer implementations without touching existing code.
+
+---
+
+## Demo Script
+
+1. Open dashboard and navigate to Products page.
+2. Create a new product with supplier assignment and stock quantity.
+3. Edit product details including supplier selection and description updates.
+4. Open Suppliers page and manage supplier information (name, email, phone).
+5. On Products page, open "Update Stock" modal and reduce stock below 10 units.
+6. Verify low-stock alert is triggered (check application logs for observer notification).
+7. Delete a product and confirm removal from inventory.
+8. Show corresponding API calls and JSON responses for all CRUD operations.
+9. Verify data persistence by restarting the application and confirming products/suppliers remain.
+
 ---
 
