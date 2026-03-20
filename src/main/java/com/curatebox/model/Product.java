@@ -12,6 +12,20 @@ import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Product model represents a physical product in the CurateBox system
+ * Products are created by suppliers and included in monthly boxes
+ * 
+ * Key Responsibilities:
+ * - Store product information (name, description, category)
+ * - Track stock quantity and inventory status
+ * - Maintain relationship with Supplier (many-to-one)
+ * - Maintain relationship with BoxContent (one-to-many)
+ * 
+ * Design Principles Applied:
+ * - Single Responsibility: Represents only product domain entity
+ * - Maintains clear relationships without over-coupling
+ */
 @Entity
 @Table(name = "products")
 public class Product {
@@ -33,6 +47,12 @@ public class Product {
     @OneToMany(mappedBy = "product")
     private List<BoxContent> boxContents = new ArrayList<>();
 
+    /**
+     * Update product stock quantity
+     * Prevents stock from going negative
+     * 
+     * @param quantity Quantity delta (positive for restock, negative for usage)
+     */
     public void updateStock(int quantity) {
         this.stockQuantity += quantity;
         if (this.stockQuantity < 0) {
@@ -40,14 +60,28 @@ public class Product {
         }
     }
 
+    /**
+     * Check if product is in stock
+     * 
+     * @return true if stock quantity > 0
+     */
     public boolean isInStock() {
         return stockQuantity > 0;
     }
 
+    /**
+     * Check if product stock is low
+     * Low stock is defined as: 0 < quantity <= 10
+     * Used by InventoryService to trigger Observer pattern notifications
+     * 
+     * @return true if stock is between 1-10 units
+     */
     public boolean isLowStock() {
         return stockQuantity > 0 && stockQuantity <= 10;
     }
 
+    // Getters and Setters
+    
     public Long getProductId() {
         return productId;
     }

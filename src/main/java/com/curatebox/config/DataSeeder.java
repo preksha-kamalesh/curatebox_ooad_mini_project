@@ -64,9 +64,11 @@ public class DataSeeder implements CommandLineRunner {
         Supplier s1 = new Supplier();
         s1.setSupplierName("FreshFarm Supplies");
         s1.setContactEmail("contact@freshfarm.com");
+        s1.setContactPhone("+1 (555) 123-4567");
         Supplier s2 = new Supplier();
         s2.setSupplierName("UrbanSnack Co");
         s2.setContactEmail("sales@urbansnack.com");
+        s2.setContactPhone("+1 (555) 987-6543");
         supplierRepository.saveAll(List.of(s1, s2));
 
         productRepository.saveAll(List.of(
