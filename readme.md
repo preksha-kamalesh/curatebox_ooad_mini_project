@@ -13,7 +13,12 @@ I was responsible for the complete implementation of the Customer and Subscripti
 This ownership was end-to-end (model, repository, service, controller, and UI), satisfying the policy that each student must own complete use cases rather than only frontend/backend parts.
 
 ### Use Cases Owned by Me
-1. Manage Customer Profile
+1. Create New Customer
+- Controller: `POST /customers/add`
+- UI: Add customer form
+- Outcome: Creates a new customer profile and immediately activates their initial Subscription plan.
+
+2. Manage Customer Profile
 - API: `PUT /api/customers/{id}`
 - UI: Customer edit form
 - Outcome: updates first name, last name, email, shipping address
@@ -183,7 +188,8 @@ This separation improves maintainability and testability, and aligns with the OO
 ## Demo Script (for Viva: 3 Marks)
 
 1. Open dashboard and navigate to Customers page.
-2. Edit Customer Profile and save.
+2. Click "Add New Customer", fill in the form with a selected plan, and save.
+3. Edit the newly created Customer Profile and save.
 3. Open Preferences page and update like/dislike options.
 4. Open Subscription page and show current status.
 5. Click Pause → verify status changes to PAUSED.

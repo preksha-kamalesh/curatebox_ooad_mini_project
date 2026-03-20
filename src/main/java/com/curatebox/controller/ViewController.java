@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -52,6 +53,21 @@ public class ViewController {
     public String customerList(Model model) {
         model.addAttribute("customers", customerService.getAllCustomers());
         return "customers/list";
+    }
+
+    @GetMapping("/customers/add")
+    public String addCustomerForm(Model model) {
+        model.addAttribute("customer", new Customer());
+        return "customers/add";
+    }
+
+    @PostMapping("/customers/add")
+    public String processAddCustomer(@ModelAttribute("customer") Customer customer, 
+                                     @RequestParam("planType") String planType, 
+                                     RedirectAttributes redirectAttributes) {
+        customerService.createCustomer(customer, planType);
+        redirectAttributes.addFlashAttribute("successMessage", "New customer created successfully.");
+        return "redirect:/customers";
     }
 
     @GetMapping("/customers/{id}/edit")

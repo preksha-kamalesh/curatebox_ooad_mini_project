@@ -7,6 +7,9 @@ import com.curatebox.model.PreferenceOption;
 import com.curatebox.repository.CustomerPreferenceRepository;
 import com.curatebox.repository.CustomerRepository;
 import com.curatebox.repository.PreferenceOptionRepository;
+import com.curatebox.model.Subscription;
+import com.curatebox.model.SubscriptionStatus;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +36,23 @@ public class CustomerService {
 
     public Customer getCustomerById(Long id) {
         return customerRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Customer not found: " + id));
+    }
+
+    @Transactional
+    public Customer createCustomer(Customer customerData, String planType) {
+        Customer customer = new Customer();
+        customer.updateProfile(customerData.getFirstName(), customerData.getLastName(), customerData.getEmail());
+        customer.setShippingAddress(customerData.getShippingAddress());
+
+        Subscription subscription = new Subscription();
+        subscription.setPlanType(planType);
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+        subscription.setStartDate(LocalDate.now());
+
+        // Establish bi-directional relationship
+        customer.setSubscription(subscription);
+
+        return customerRepository.save(customer);
     }
 
     @Transactional
