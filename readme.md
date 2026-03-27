@@ -342,14 +342,34 @@ Supporting files:
 - LowStockAlertObserver (Concrete observer implementation)
 
 ### Design Principle Contribution
-I applied **SRP (Single Responsibility Principle)**:
-1. **Entities** (Product, Supplier) only model data and core business entity behavior.
-2. **Repositories** (ProductRepository, SupplierRepository) only handle persistence access and queries.
-3. **Services** (ProductService, SupplierService, InventoryService) only contain business rules, transactions, and coordination logic.
-4. **Controllers** (ProductController, SupplierController) only map HTTP requests/responses and delegate to services.
-5. **Observer Interface** (IInventoryObserver) defines a single responsibility: handling low-stock notifications.
+I applied **OCP (Open/Closed Principle)**:
 
-This separation improves maintainability, testability, and extensibility. New features (like email notifications) can be added by creating new observer implementations without touching existing code.
+The inventory management system is **open for extension, closed for modification**:
+
+1. **Core InventoryService** remains unchanged and is **closed for modification** - it maintains the observer list and calls `notifyObservers()`.
+
+2. **Observer Interface** (`IInventoryObserver`) defines the contract for all notification handlers.
+
+3. **Extensibility**: New notification mechanisms can be added by:
+   - Creating new observer implementations (e.g., `EmailAlertObserver`, `SMSAlertObserver`, `DashboardAlertObserver`)
+   - Registering them with `registerObserver()`
+   - **Without modifying** the core InventoryService, Product, or Supplier classes
+
+**Example of OCP in action:**
+```
+// New feature: Email notifications
+class EmailAlertObserver implements IInventoryObserver {
+    @Override
+    public void onLowStock(Product product) {
+        // Send email alert
+    }
+}
+
+// Simply register it
+inventoryService.registerObserver(new EmailAlertObserver());
+```
+
+The system remains stable while new notification strategies can be seamlessly added, demonstrating the Open/Closed Principle. This design ensures backward compatibility and allows the codebase to evolve without breaking existing functionality.
 
 ---
 
