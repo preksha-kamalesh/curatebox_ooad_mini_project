@@ -1,2 +1,8 @@
 
 target/
+
+# Local H2 runtime files (keep local, do not commit)
+data/*.mv.db
+data/*.trace.db
+data/*.lock.db
+data/*.h2.db
