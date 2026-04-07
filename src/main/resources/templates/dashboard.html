@@ -13,6 +13,13 @@
 
 <div class="container animate-slide-up">
     <div class="page-header text-center">
+        <div class="text-end mb-3">
+            <form th:action="@{/admin/logout}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-sm btn-outline-light">
+                    <i class="fa-solid fa-right-from-bracket me-1"></i>Logout
+                </button>
+            </form>
+        </div>
         <h1 class="display-4 fw-bold mb-3"><i class="fa-solid fa-box-open me-3"></i>CurateBox</h1>
         <p class="lead opacity-75">Premium Subscription Management Platform</p>
     </div>
@@ -31,6 +38,17 @@
                                 </div>
                                 <h3>Manage Customers</h3>
                                 <p class="text-muted mt-2">View profiles, subscriptions, and preferences</p>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <a href="/boxes/dashboard" class="dash-card justify-content-center">
+                            <div class="text-center">
+                                <div class="mb-3">
+                                    <i class="fa-solid fa-box me-3 fa-3x" style="color: var(--primary)"></i>
+                                </div>
+                                <h3>Manage Boxes</h3>
+                                <p class="text-muted mt-2">Generate monthly boxes and update shipping status</p>
                             </div>
                         </a>
                     </div>

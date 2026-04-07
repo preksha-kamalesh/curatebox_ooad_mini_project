@@ -387,3 +387,155 @@ The system remains stable while new notification strategies can be seamlessly ad
 
 ---
 
+## Nidhi K
+
+### Team Member Scope
+I was responsible for the complete implementation and refinement of the Admin + Box Management module in CurateBox, specifically:
+1. Admin
+2. AdminController
+3. BoxService
+4. BoxFactory
+5. BoxController
+6. BoxViewController
+
+This ownership was end-to-end (model, controller, service, factory integration, and API behavior) and aligned with the policy that each student owns full use cases.
+
+### Use Cases Owned by Me
+1. Admin Login
+- API: `POST /api/admin/login`
+- Outcome: validates credentials, updates last login time, returns clean success/error response.
+
+2. Box Management Webpage
+- UI: `GET /boxes/dashboard`
+- Outcome: provides a dedicated page for generating boxes, searching customer boxes, and updating shipping.
+
+3. Generate Monthly Boxes
+- API: `POST /api/boxes/generate?date=yyyy-MM-dd`
+- UI: `POST /boxes/dashboard/generate`
+- Outcome: generates curated boxes for active subscribers for the requested date.
+
+4. View Customer Boxes
+- API: `GET /api/boxes/customer/{id}`
+- UI: `POST /boxes/dashboard/search`
+- Outcome: returns all monthly boxes for the selected customer.
+
+5. Update Box Shipping Status
+- API: `PUT /api/boxes/{boxId}/status`
+- UI: `POST /boxes/dashboard/status`
+- Outcome: validates and updates shipping status using service-layer rules.
+
+6. Mark Box as Shipped
+- API: `PUT /api/boxes/{boxId}/ship`
+- UI: `POST /boxes/dashboard/ship`
+- Outcome: marks shipment as shipped and records shipping date.
+
+### Analysis and Design Models
+
+#### Module Class Diagram
+```mermaid
+classDiagram
+    class BoxController {
+        +generateMonthlyBoxes(date)
+        +getBoxesByCustomer(id)
+        +updateShippingStatus(boxId, body)
+        +ship(boxId)
+    }
+
+    class BoxViewController {
+        +boxDashboard(customerId, model)
+        +generateMonthlyBoxes(date, redirectAttributes)
+        +searchCustomerBoxes(customerId, redirectAttributes)
+        +updateShippingStatus(boxId, status, redirectAttributes)
+        +shipBox(boxId, redirectAttributes)
+    }
+
+    class IBoxService {
+        <<interface>>
+        +generateMonthlyBoxes(date)
+        +getBoxesByCustomer(customerId)
+        +updateShippingStatus(boxId, status)
+        +shipBox(boxId)
+    }
+
+    class BoxService
+    class IBoxFactory {
+        <<interface>>
+    }
+    class BoxFactory
+    class IInventoryService {
+        <<interface>>
+    }
+
+    BoxController --> IBoxService
+    BoxViewController --> BoxService
+    IBoxService <|.. BoxService
+    BoxService --> IBoxFactory
+    IBoxFactory <|.. BoxFactory
+    BoxService --> IInventoryService
+    BoxService --> ICurationStrategy
+```
+
+#### Admin Login Sequence Diagram
+```mermaid
+sequenceDiagram
+    participant Client
+    participant AdminController
+    participant IAdminAuthService
+    participant AdminRepository
+    participant Admin
+
+    Client->>AdminController: POST /api/admin/login
+    AdminController->>IAdminAuthService: login(username, password)
+    IAdminAuthService->>AdminRepository: findByUsername(username)
+    AdminRepository-->>IAdminAuthService: Admin
+    IAdminAuthService->>Admin: authenticate(username, password)
+    IAdminAuthService->>Admin: updateLastLogin()
+    IAdminAuthService->>AdminRepository: save(admin)
+    IAdminAuthService-->>AdminController: true/false
+    AdminController-->>Client: 200 or 401
+```
+
+### MVC Architecture Justification
+My module follows MVC clearly:
+1. **Controller**: `AdminController`, `BoxController`, and `BoxViewController` only handle request/response and validation.
+2. **Service**: `BoxService`, `AdminAuthService` contain business rules.
+3. **Repository**: data access is isolated to repository interfaces and consumed by services.
+4. **Model**: `Admin`, `MonthlyBox`, `BoxContent`, and related entities hold domain state/behavior.
+
+### Design Pattern + Principle Justification
+
+#### Design Pattern Contribution
+**Factory Pattern**: `BoxFactory` centralizes object creation of `MonthlyBox` and `BoxContent`, while `BoxService` consumes the factory abstraction (`IBoxFactory`) instead of constructing entities directly. The box page and API both use the same service, so the workflow stays consistent.
+
+Supporting files:
+- `BoxFactory`
+- `IBoxFactory`
+- `BoxService`
+- `BoxViewController`
+
+**Strategy Pattern**: `ICurationStrategy` and `PreferenceBasedCuration` decide which products go into a box based on customer preferences. `BoxService` keeps the strategy as a dependency and can switch it with `setCurationStrategy(...)`.
+
+Supporting files:
+- `ICurationStrategy`
+- `PreferenceBasedCuration`
+- `BoxService`
+
+#### Design Principle Contribution
+**DIP (Dependency Inversion Principle)**:
+1. `BoxController` depends on `IBoxService`.
+2. `AdminController` depends on `IAdminAuthService`.
+3. `BoxService` depends on abstractions `IBoxFactory`, `IInventoryService`, and `ICurationStrategy`.
+4. `BoxViewController` reuses `BoxService` instead of creating box logic itself.
+
+High-level modules now depend on interfaces, while low-level implementations are injected by Spring.
+
+### Demo Script
+1. Open `/admin/login` and sign in with the seeded admin account.
+2. Open `/boxes/dashboard` and show the dedicated Box Management page.
+3. Generate monthly boxes by selecting a date.
+4. Search customer boxes by customer ID and show the generated result table.
+5. Update shipping status and mark a box as shipped.
+6. Mention that the same workflow is also available through `/api/boxes/**` endpoints.
+
+---
+

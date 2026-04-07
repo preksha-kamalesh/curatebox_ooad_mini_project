@@ -1,8 +1,8 @@
 package com.curatebox.controller;
 
-import com.curatebox.model.Admin;
-import com.curatebox.repository.AdminRepository;
+import com.curatebox.service.IAdminAuthService;
 import com.curatebox.service.ReportService;
+import jakarta.servlet.http.HttpSession;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,27 +16,33 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/admin")
 public class AdminController {
 
-    private final AdminRepository adminRepository;
+    private final IAdminAuthService adminAuthService;
     private final ReportService reportService;
 
-    public AdminController(AdminRepository adminRepository, ReportService reportService) {
-        this.adminRepository = adminRepository;
+    public AdminController(IAdminAuthService adminAuthService, ReportService reportService) {
+        this.adminAuthService = adminAuthService;
         this.reportService = reportService;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody Map<String, String> request) {
-        String username = request.get("username");
-        String password = request.get("password");
+    public ResponseEntity<?> login(@RequestBody Map<String, String> request, HttpSession session) {
+        try {
+            String username = request.get("username");
+            String password = request.get("password");
 
-        Admin admin = adminRepository.findByUsername(username).orElse(null);
-        if (admin == null || !admin.authenticate(username, password)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+            // Controller delegates auth rules to service abstraction (DIP).
+            boolean success = adminAuthService.login(username, password);
+            if (!success) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid credentials"));
+            }
+
+            session.setAttribute("isAdminLoggedIn", true);
+            session.setAttribute("adminUsername", username);
+
+            return ResponseEntity.ok(Map.of("message", "Login successful"));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
         }
-
-        admin.updateLastLogin();
-        adminRepository.save(admin);
-        return ResponseEntity.ok("Login successful");
     }
 
     @GetMapping("/dashboard")

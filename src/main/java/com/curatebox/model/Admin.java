@@ -26,10 +26,15 @@ public class Admin {
     private LocalDateTime lastLogin;
 
     public boolean authenticate(String username, String rawPassword) {
+        if (username == null || rawPassword == null) {
+            return false;
+        }
+        // Keep auth check inside the entity so login rule stays close to admin data.
         return this.username.equals(username) && BCrypt.checkpw(rawPassword, this.passwordHash);
     }
 
     public void updateLastLogin() {
+        // This timestamp is useful for dashboard audit visibility.
         this.lastLogin = LocalDateTime.now();
     }
 

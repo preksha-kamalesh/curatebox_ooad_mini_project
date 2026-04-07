@@ -6,8 +6,10 @@ import com.curatebox.model.CustomerPreference;
 import com.curatebox.model.PreferenceOption;
 import com.curatebox.model.Subscription;
 import com.curatebox.repository.PreferenceOptionRepository;
+import com.curatebox.service.IAdminAuthService;
 import com.curatebox.service.CustomerService;
 import com.curatebox.service.SubscriptionService;
+import jakarta.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,19 +31,59 @@ public class ViewController {
     private final CustomerService customerService;
     private final SubscriptionService subscriptionService;
     private final PreferenceOptionRepository preferenceOptionRepository;
+    private final IAdminAuthService adminAuthService;
 
     public ViewController(
             CustomerService customerService,
             SubscriptionService subscriptionService,
-            PreferenceOptionRepository preferenceOptionRepository) {
+            PreferenceOptionRepository preferenceOptionRepository,
+            IAdminAuthService adminAuthService) {
         this.customerService = customerService;
         this.subscriptionService = subscriptionService;
         this.preferenceOptionRepository = preferenceOptionRepository;
+        this.adminAuthService = adminAuthService;
     }
 
     @GetMapping("/")
     public String home() {
         return "redirect:/dashboard";
+    }
+
+    @GetMapping("/admin/login")
+    public String adminLoginPage(HttpSession session) {
+        if (Boolean.TRUE.equals(session.getAttribute("isAdminLoggedIn"))) {
+            return "redirect:/dashboard";
+        }
+        return "admin/login";
+    }
+
+    @PostMapping("/admin/login")
+    public String adminLogin(
+            @RequestParam("username") String username,
+            @RequestParam("password") String password,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
+        try {
+            boolean success = adminAuthService.login(username, password);
+            if (!success) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Invalid credentials");
+                return "redirect:/admin/login";
+            }
+
+            // Single source of truth for admin session checks across web routes.
+            session.setAttribute("isAdminLoggedIn", true);
+            session.setAttribute("adminUsername", username);
+            return "redirect:/dashboard";
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            return "redirect:/admin/login";
+        }
+    }
+
+    @PostMapping("/admin/logout")
+    public String adminLogout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/admin/login";
     }
 
     @GetMapping("/dashboard")

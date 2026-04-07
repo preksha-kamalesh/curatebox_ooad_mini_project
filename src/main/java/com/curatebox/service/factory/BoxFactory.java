@@ -8,8 +8,9 @@ import java.time.LocalDate;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BoxFactory {
+public class BoxFactory implements IBoxFactory {
 
+    @Override
     public MonthlyBox createBox(Customer customer, LocalDate curationDate) {
         MonthlyBox box = new MonthlyBox();
         box.setCustomer(customer);
@@ -18,6 +19,7 @@ public class BoxFactory {
         return box;
     }
 
+    @Override
     public BoxContent createBoxContent(MonthlyBox box, Product product, int quantity) {
         BoxContent content = new BoxContent();
         content.setMonthlyBox(box);

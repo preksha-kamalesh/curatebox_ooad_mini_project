@@ -44,7 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 5. LowStockAlertObserver logs the alert message
  */
 @Service
-public class InventoryService {
+public class InventoryService implements IInventoryService {
 
     private static final int LOW_STOCK_THRESHOLD = 10;
 
@@ -96,6 +96,7 @@ public class InventoryService {
      * @param quantityDelta Quantity change (positive for restock, negative for usage)
      */
     @Transactional
+    @Override
     public void updateStock(Product product, int quantityDelta) {
         // Apply the stock update (handles negative stock prevention)
         product.updateStock(quantityDelta);
