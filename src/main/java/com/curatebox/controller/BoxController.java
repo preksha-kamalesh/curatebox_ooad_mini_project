@@ -1,6 +1,7 @@
 package com.curatebox.controller;
 
 import com.curatebox.model.MonthlyBox;
+import com.curatebox.model.Product;
 import com.curatebox.service.IBoxService;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -46,6 +47,16 @@ public class BoxController {
         try {
             List<MonthlyBox> boxes = boxService.getBoxesByCustomer(id);
             return ResponseEntity.ok(boxes);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
+        }
+    }
+
+    @GetMapping("/customer/{id}/preview")
+    public ResponseEntity<?> previewCuration(@PathVariable Long id) {
+        try {
+            List<Product> curatedProducts = boxService.previewCuration(id);
+            return ResponseEntity.ok(curatedProducts);
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", ex.getMessage()));
         }
