@@ -13,6 +13,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Entity
 @Table(name = "monthly_boxes")
@@ -35,6 +36,21 @@ public class MonthlyBox {
     private List<BoxContent> boxContents = new ArrayList<>();
 
     public void addProduct(Product product, int quantity) {
+        if (product == null) {
+            throw new IllegalArgumentException("Product is required");
+        }
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
+
+        for (BoxContent existing : boxContents) {
+            if (existing.getProduct() != null && existing.getProduct().getProductId() != null
+                    && existing.getProduct().getProductId().equals(product.getProductId())) {
+                existing.incrementQuantity(quantity);
+                return;
+            }
+        }
+
         BoxContent content = new BoxContent();
         content.setMonthlyBox(this);
         content.setProduct(product);
@@ -43,7 +59,13 @@ public class MonthlyBox {
     }
 
     public void updateShippingStatus(String status) {
-        this.shippingStatus = status;
+        if (status == null || status.isBlank()) {
+            throw new IllegalArgumentException("Shipping status is required");
+        }
+        this.shippingStatus = status.trim().toUpperCase(Locale.ROOT);
+        if ("SHIPPED".equals(this.shippingStatus) && this.shippedAt == null) {
+            this.shippedAt = LocalDate.now();
+        }
     }
 
     public void ship() {
