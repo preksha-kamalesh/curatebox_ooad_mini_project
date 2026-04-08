@@ -539,3 +539,138 @@ High-level modules now depend on interfaces, while low-level implementations are
 
 ---
 
+## Navya (PES2UG23CS372)
+
+### Team Member Scope
+I was responsible for implementation and refinement of the curation + box content behavior module in CurateBox, specifically:
+1. `ICurationStrategy`
+2. `PreferenceBasedCuration`
+3. `MonthlyBox`
+4. `BoxContent`
+5. Curation preview flow in Box APIs and Box UI
+
+This ownership is end-to-end for the assigned classes and includes model behavior, service integration, API exposure, and UI updates.
+
+### Use Cases Owned by Me
+1. Preview Curated Products for a Customer
+- API: `GET /api/boxes/customer/{id}/preview`
+- UI: `POST /boxes/dashboard/preview` on Box Management page
+- Outcome: previews products selected by curation logic without changing inventory or creating a box.
+
+2. Preference-Based Curation Pipeline Execution
+- Service flow: `BoxService.previewCuration(...)` and `BoxService.generateMonthlyBoxes(...)`
+- Outcome: shared curation pipeline consistently handles input checks, filtering disliked categories, ranking liked categories first, and enforcing min/max box size.
+
+3. Box Content Domain Safety
+- Model: `BoxContent.updateQuantity(...)`, `BoxContent.incrementQuantity(...)`
+- Outcome: prevents invalid (non-positive) quantities from entering the domain model.
+
+4. Monthly Box Product Merge + Shipping Normalization
+- Model: `MonthlyBox.addProduct(...)`, `MonthlyBox.updateShippingStatus(...)`
+- Outcome:
+  - prevents null products and invalid quantities
+  - merges duplicate products by increasing quantity
+  - normalizes status values and auto-sets `shippedAt` when status becomes `SHIPPED`.
+
+### Analysis and Design Models
+
+#### Curation Template Method Diagram
+```mermaid
+classDiagram
+    class ICurationStrategy {
+        <<interface>>
+        +curateBox(customer, availableProducts) List~Product~
+    }
+
+    class AbstractCurationTemplate {
+        -minProducts int
+        -maxProducts int
+        +curateBox(customer, availableProducts) List~Product~
+        #filterEligibleProducts(products, dislikes) List~Product~
+        #rankProducts(customer, eligibleProducts, likes, dislikes) List~Product~
+    }
+
+    class PreferenceBasedCuration {
+        +rankProducts(customer, eligibleProducts, likes, dislikes) List~Product~
+    }
+
+    ICurationStrategy <|.. AbstractCurationTemplate
+    AbstractCurationTemplate <|-- PreferenceBasedCuration
+```
+
+#### Monthly Box and Box Content Diagram
+```mermaid
+classDiagram
+    class MonthlyBox {
+        -boxId Long
+        -shippingStatus String
+        -shippedAt LocalDate
+        +addProduct(product, quantity) void
+        +updateShippingStatus(status) void
+        +ship() void
+    }
+
+    class BoxContent {
+        -boxContentId Long
+        -quantity int
+        +updateQuantity(qty) void
+        +incrementQuantity(delta) void
+    }
+
+    MonthlyBox "1" *-- "0..*" BoxContent
+```
+
+### GRASP + Design Pattern Justification
+
+#### GRASP Principle Used: Information Expert
+I applied **Information Expert** by placing core responsibility in the classes that hold the required data:
+1. `MonthlyBox` owns box-content aggregation and shipping-status normalization because it has `boxContents`, `shippingStatus`, and `shippedAt`.
+2. `BoxContent` owns quantity validation because it directly stores `quantity`.
+3. `AbstractCurationTemplate` owns curation workflow orchestration because it has the min/max selection constraints and curation steps.
+
+This keeps behavior close to data and avoids scattering domain rules into controllers.
+
+#### Design Pattern Used: Template Method Pattern
+I implemented **Template Method** using `AbstractCurationTemplate`:
+1. Fixed algorithm skeleton in `curateBox(...)`:
+   - validate input
+   - extract likes/dislikes
+   - filter eligible products
+   - rank products
+   - apply bounds
+2. Variable step delegated to subclass via `rankProducts(...)`.
+3. `PreferenceBasedCuration` customizes ranking logic without changing the pipeline.
+
+This pattern is different from already used patterns (State, Observer, Factory, Strategy) and adds extensibility for future curation variants.
+
+### Technical Evidence (My Module)
+
+#### Model Layer
+1. `MonthlyBox`
+2. `BoxContent`
+
+#### Service Strategy Layer
+1. `ICurationStrategy`
+2. `AbstractCurationTemplate`
+3. `PreferenceBasedCuration`
+
+#### Service / Controller Integration
+1. `IBoxService.previewCuration(...)`
+2. `BoxService.previewCuration(...)`
+3. `BoxController` preview endpoint
+4. `BoxViewController` preview flow
+
+#### UI (Thymeleaf)
+1. `boxes/dashboard` (added Curation Preview section)
+
+### Demo Script
+1. Open `/admin/login` and sign in.
+2. Open `/boxes/dashboard`.
+3. In **Curation Preview**, enter customer ID and click **Preview Products**.
+4. Verify previewed products prioritize liked categories and exclude disliked categories.
+5. Generate monthly boxes for a date and verify generation still works.
+6. Search customer boxes and confirm contents are created.
+7. Update status / ship box and verify `SHIPPED` status behavior remains correct.
+
+---
+
