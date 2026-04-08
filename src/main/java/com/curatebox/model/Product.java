@@ -80,6 +80,14 @@ public class Product {
         return stockQuantity > 0 && stockQuantity <= 10;
     }
 
+    /**
+     * UML compatibility method: product-level low stock notification hook.
+     * The actual observer dispatch remains in InventoryService.
+     */
+    public void notifyLowStock() {
+        // Intentional no-op domain hook to match the class diagram contract.
+    }
+
     // Getters and Setters
     
     public Long getProductId() {
