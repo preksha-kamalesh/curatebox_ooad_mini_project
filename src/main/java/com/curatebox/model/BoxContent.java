@@ -29,7 +29,17 @@ public class BoxContent {
     private int quantity;
 
     public void updateQuantity(int qty) {
+        if (qty <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
         this.quantity = qty;
+    }
+
+    public void incrementQuantity(int delta) {
+        if (delta <= 0) {
+            throw new IllegalArgumentException("Quantity increment must be positive");
+        }
+        this.quantity += delta;
     }
 
     public Long getBoxContentId() {
@@ -61,6 +71,6 @@ public class BoxContent {
     }
 
     public void setQuantity(int quantity) {
-        this.quantity = quantity;
+        updateQuantity(quantity);
     }
 }
