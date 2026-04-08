@@ -62,6 +62,10 @@ public class Supplier {
         return products;
     }
 
+    public void updateContact(String email) {
+        this.contactEmail = email;
+    }
+
     public void setProducts(List<Product> products) {
         this.products = products;
     }
