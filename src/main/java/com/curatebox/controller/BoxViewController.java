@@ -1,6 +1,7 @@
 package com.curatebox.controller;
 
 import com.curatebox.model.MonthlyBox;
+import com.curatebox.model.Product;
 import com.curatebox.service.BoxService;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -27,9 +28,12 @@ public class BoxViewController {
     @GetMapping("/dashboard")
     public String boxDashboard(
             @RequestParam(required = false) Long customerId,
+            @RequestParam(required = false) Long previewCustomerId,
             Model model) {
         model.addAttribute("customerId", customerId);
         model.addAttribute("customerBoxes", customerId == null ? Collections.emptyList() : loadCustomerBoxes(customerId));
+        model.addAttribute("previewCustomerId", previewCustomerId);
+        model.addAttribute("previewProducts", previewCustomerId == null ? Collections.emptyList() : previewCuration(previewCustomerId));
         return "boxes/dashboard";
     }
 
@@ -51,6 +55,12 @@ public class BoxViewController {
     @PostMapping("/dashboard/search")
     public String searchCustomerBoxes(@RequestParam Long customerId, RedirectAttributes redirectAttributes) {
         redirectAttributes.addAttribute("customerId", customerId);
+        return "redirect:/boxes/dashboard";
+    }
+
+    @PostMapping("/dashboard/preview")
+    public String previewCuratedProducts(@RequestParam Long customerId, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addAttribute("previewCustomerId", customerId);
         return "redirect:/boxes/dashboard";
     }
 
@@ -84,6 +94,14 @@ public class BoxViewController {
     private List<MonthlyBox> loadCustomerBoxes(Long customerId) {
         try {
             return boxService.getBoxesByCustomer(customerId);
+        } catch (IllegalArgumentException ex) {
+            return Collections.emptyList();
+        }
+    }
+
+    private List<Product> previewCuration(Long customerId) {
+        try {
+            return boxService.previewCuration(customerId);
         } catch (IllegalArgumentException ex) {
             return Collections.emptyList();
         }
