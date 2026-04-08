@@ -47,6 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class InventoryService implements IInventoryService {
 
     private static final int LOW_STOCK_THRESHOLD = 10;
+    private final int lowStockThreshold = LOW_STOCK_THRESHOLD;
 
     // List of observers subscribed to inventory changes
     private final List<IInventoryObserver> observers = new ArrayList<>();
@@ -104,7 +105,7 @@ public class InventoryService implements IInventoryService {
         
         // Check if stock is now low and notify observers
         // Trigger alert if stock is at or below threshold (includes 0)
-        if (product.getStockQuantity() <= LOW_STOCK_THRESHOLD) {
+        if (product.getStockQuantity() <= lowStockThreshold) {
             notifyObservers(product);
         }
     }
@@ -115,9 +116,10 @@ public class InventoryService implements IInventoryService {
      *
      * @param product Product with low stock
      */
-    private void notifyObservers(Product product) {
+    public void notifyObservers(Product product) {
         // Iterate through all registered observers and notify them
         observers.forEach(observer -> observer.onLowStock(product));
+        product.notifyLowStock();
     }
 
     /**
@@ -135,6 +137,6 @@ public class InventoryService implements IInventoryService {
      * @return Current low stock threshold
      */
     public int getLowStockThreshold() {
-        return LOW_STOCK_THRESHOLD;
+        return lowStockThreshold;
     }
 }
