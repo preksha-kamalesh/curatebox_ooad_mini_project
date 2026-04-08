@@ -54,6 +54,14 @@ public class BoxService implements IBoxService {
     }
 
     @Override
+    public List<Product> previewCuration(Long customerId) {
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new IllegalArgumentException("Customer not found: " + customerId));
+        List<Product> available = productRepository.findAll().stream().filter(Product::isInStock).toList();
+        return curationStrategy.curateBox(customer, available);
+    }
+
+    @Override
     @Transactional
     public void generateMonthlyBoxes(LocalDate date) {
         if (date == null) {
