@@ -45,6 +45,10 @@ public class PreferenceOption {
         return preferenceValue;
     }
 
+    public String getValue() {
+        return preferenceValue;
+    }
+
     public void setPreferenceValue(String preferenceValue) {
         this.preferenceValue = preferenceValue;
     }
