@@ -4,6 +4,7 @@ import com.curatebox.dto.ProductDTO;
 import com.curatebox.dto.SupplierDTO;
 import com.curatebox.model.Product;
 import com.curatebox.model.Supplier;
+import com.curatebox.repository.ProductRepository;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,13 +50,16 @@ public class InventoryFacade {
     private final ProductService productService;
     private final SupplierService supplierService;
     private final InventoryService inventoryService;
+    private final ProductRepository productRepository;
 
     public InventoryFacade(ProductService productService,
                           SupplierService supplierService,
-                          InventoryService inventoryService) {
+                          InventoryService inventoryService,
+                          ProductRepository productRepository) {
         this.productService = productService;
         this.supplierService = supplierService;
         this.inventoryService = inventoryService;
+        this.productRepository = productRepository;
     }
 
     /**
@@ -82,12 +86,13 @@ public class InventoryFacade {
         if (supplierId != null) {
             Supplier supplier = supplierService.getSupplierById(supplierId);
             product.setSupplier(supplier);
-            productService.updateProduct(product.getProductId(), product, supplierId);
         }
         
-        // Subsystem 3: Initialize stock and register for inventory notifications using InventoryService
+        // Subsystem 3: Initialize stock
         product.setStockQuantity(initialStock);
-        productService.updateProduct(product.getProductId(), product, supplierId);
+        
+        // Persist the product with all updates
+        productRepository.save(product);
         
         return product;
     }
@@ -182,7 +187,7 @@ public class InventoryFacade {
             Supplier supplier = supplierService.getSupplierById(supplierId);
             product.setSupplier(supplier);
         }
-        return productService.updateProduct(productId, product, supplierId);
+        return productRepository.save(product);
     }
 
     /**
