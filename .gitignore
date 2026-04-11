@@ -1,2 +1,13 @@
 
 target/
+
+# Database files (IMPORTANT)
+*.mv.db
+*.trace.db
+
+# Logs (optional but good)
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

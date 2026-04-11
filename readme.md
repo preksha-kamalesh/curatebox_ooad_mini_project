@@ -291,14 +291,19 @@ classDiagram
 #### Service Layer (Business Logic)
 1. ProductService
 2. SupplierService
-3. InventoryService (Observer Pattern Implementation)
+3. InventoryService
+4. **InventoryFacade** (Facade Pattern Implementation - Coordinates all services)
 
-#### Observer Pattern Components
-1. IInventoryObserver (Interface)
-2. LowStockAlertObserver (Implementation)
+#### Facade Components
+1. InventoryFacade (Unified interface for complex inventory operations)
+2. Coordinated Services: ProductService, SupplierService, InventoryService
+
+#### Observer Pattern Components (Used by Facade)
+1. IInventoryObserver (Interface for stock notifications)
+2. LowStockAlertObserver (Implementation of observer)
 
 #### Controller Layer (REST API)
-1. ProductController
+1. ProductController (Uses InventoryFacade)
 2. SupplierController
 
 #### UI (Thymeleaf Views)
@@ -325,12 +330,36 @@ This satisfies the "Use of MVC Architecture Pattern" criterion by maintaining cl
 ## Design Pattern + Principle Justification
 
 ### Design Pattern Contribution
-**Observer Design Pattern**: I implemented the Observer Pattern to manage inventory notifications and low-stock alerts. InventoryService acts as the **Subject** that maintains a list of observers (IInventoryObserver implementations). When product stock falls below 10 units, InventoryService calls `notifyObservers()` which triggers `onLowStock()` methods on all registered observers. The LowStockAlertObserver implementation logs critical alerts. This design decouples inventory updates from notification logic, allowing multiple observers (email alerts, SMS, dashboard notifications) to be added without modifying core InventoryService code.
+**Facade Design Pattern**: I implemented the Facade Pattern to provide a unified, simplified interface for the complex inventory management system. Instead of exposing clients (Product UI, Admin dashboard) directly to multiple services (ProductService, SupplierService, InventoryService), the `InventoryFacade` acts as a single entry point that:
+
+1. **Encapsulates complexity** - Hides the interaction between ProductService, SupplierService, and InventoryService
+2. **Provides simplified API** - Clients call simple methods like `createProductWithInventory()`, `updateStockWithNotification()` instead of coordinating multiple services
+3. **Manages stock notifications** - Internally coordinates with InventoryService to trigger low-stock observer alerts
+4. **Hides internal communication** - ProductController only knows about InventoryFacade, not the underlying services
+
+**Participants:**
+- **Facade** (InventoryFacade): Provides unified interface
+- **Subsystems** (ProductService, SupplierService, InventoryService): Complex internal logic
+- **Client** (ProductController): Uses only the Facade
+
+**Example of Facade in action:**
+```java
+// Without Facade (complex)
+productService.createProduct(dto);
+supplierService.assignToProduct(productId, supplierId);
+inventoryService.initializeStock(product, initialQuantity);
+inventoryService.registerObserver(alertObserver);
+
+// With Facade (simple - single call)
+inventoryFacade.createProductWithInventory(dto, supplierId, initialQuantity);
+```
+
+This pattern improves maintainability by keeping the controller simple and clean, while allowing internal refactoring of services without affecting client code.
 
 Supporting files:
-- InventoryService (Subject with observer management)
-- IInventoryObserver (Observer interface)
-- LowStockAlertObserver (Concrete observer implementation)
+- InventoryFacade (Facade providing unified interface)
+- ProductService, SupplierService, InventoryService (Hidden subsystems)
+- ProductController (Client using only Facade)
 
 ### Design Principle Contribution
 I applied **OCP (Open/Closed Principle)**:
