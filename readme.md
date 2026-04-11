@@ -220,12 +220,11 @@ This ownership was end-to-end (model, repository, service, controller, and UI), 
 - UI: Suppliers management page with statistics
 - Outcome: complete CRUD operations for supplier management
 
-4. Low Stock Alerts (via Facade)
-- InventoryFacade: Coordinates notification logic
-- InventoryService: Manages stock levels and triggers alerts
-- IInventoryObserver: Interface defining observer contract
-- LowStockAlertObserver: Implementation that logs low stock alerts
-- Outcome: automatic notifications when products reach critical stock levels through unified Facade interface
+4. Low Stock Management
+- Facade Method: `getLowStockProducts()` retrieves products with stock ≤ 10 units
+- Service: InventoryService provides `isLowStock()` check
+- Alerts: Logged directly when stock falls below threshold
+- Outcome: Automatic low-stock tracking through Facade interface
 
 5. Product-Supplier Relationships
 - API: Assigning suppliers to products during creation and editing
@@ -318,16 +317,12 @@ classDiagram
 #### Service Layer (Business Logic)
 1. ProductService
 2. SupplierService
-3. InventoryService
-4. **InventoryFacade** (Facade Pattern Implementation - Coordinates all services)
+3. InventoryService (Subsystem: Stock management & low-stock checks)
+4. **InventoryFacade** (Main Pattern: Unified interface coordinating all services)
 
 #### Facade Components
-1. InventoryFacade (Unified interface for complex inventory operations)
+1. InventoryFacade (Provides simplified interface to complex subsystems)
 2. Coordinated Services: ProductService, SupplierService, InventoryService
-
-#### Observer Pattern Components (Used by Facade)
-1. IInventoryObserver (Interface for stock notifications)
-2. LowStockAlertObserver (Implementation of observer)
 
 #### Controller Layer (REST API)
 1. ProductController (Uses InventoryFacade)
@@ -361,7 +356,7 @@ This satisfies the "Use of MVC Architecture Pattern" criterion by maintaining cl
 
 1. **Encapsulates complexity** - Hides the interaction between ProductService, SupplierService, and InventoryService
 2. **Provides simplified API** - Clients call simple methods like `createProductWithInventory()`, `updateStockWithNotification()` instead of coordinating multiple services
-3. **Manages stock notifications** - Internally coordinates with InventoryService to trigger low-stock observer alerts
+3. **Manages stock tracking** - Internally coordinates with InventoryService to check low-stock conditions
 4. **Hides internal communication** - ProductController only knows about InventoryFacade, not the underlying services
 
 **Participants:**
@@ -371,13 +366,12 @@ This satisfies the "Use of MVC Architecture Pattern" criterion by maintaining cl
 
 **Example of Facade in action:**
 ```java
-// Without Facade (complex)
+// Without Facade (complex - multiple calls)
 productService.createProduct(dto);
 supplierService.assignToProduct(productId, supplierId);
-inventoryService.initializeStock(product, initialQuantity);
-inventoryService.registerObserver(alertObserver);
+inventoryService.updateStock(product, initialQuantity);
 
-// With Facade (simple - single call)
+// With Facade (simple - single unified call)
 inventoryFacade.createProductWithInventory(dto, supplierId, initialQuantity);
 ```
 
@@ -393,30 +387,35 @@ I applied **OCP (Open/Closed Principle)**:
 
 The inventory management system is **open for extension, closed for modification**:
 
-1. **Core InventoryService** remains unchanged and is **closed for modification** - it maintains the observer list and calls `notifyObservers()`.
+1. **Core Facade** (InventoryFacade) remains **closed for modification** - It provides a stable interface for inventory operations and coordinates internal subsystems.
 
-2. **Observer Interface** (`IInventoryObserver`) defines the contract for all notification handlers.
+2. **Subsystem Interface** - Internal services (ProductService, SupplierService, InventoryService) are hidden behind the Facade, providing a contract for their responsibilities.
 
-3. **Extensibility**: New notification mechanisms can be added by:
-   - Creating new observer implementations (e.g., `EmailAlertObserver`, `SMSAlertObserver`, `DashboardAlertObserver`)
-   - Registering them with `registerObserver()`
-   - **Without modifying** the core InventoryService, Product, or Supplier classes
+3. **Extensibility**: New features and services can be added by:
+   - Creating new service implementations (e.g., audit logging service, notification service)
+   - Adding them to the Facade without modifying existing subsystems
+   - Extending Facade methods without breaking existing client code (ProductController)
 
 **Example of OCP in action:**
 ```
-// New feature: Email notifications
-class EmailAlertObserver implements IInventoryObserver {
-    @Override
-    public void onLowStock(Product product) {
-        // Send email alert
-    }
+// New feature: Audit logging service
+class AuditService {
+    public void logProductCreation(Product product) { ... }
 }
 
-// Simply register it
-inventoryService.registerObserver(new EmailAlertObserver());
+// Add to Facade without modifying ProductController
+public class InventoryFacade {
+    private AuditService auditService;
+    
+    public Product createProductWithInventory(...) {
+        Product product = productService.createProduct(dto);
+        auditService.logProductCreation(product); // New feature added
+        return product;
+    }
+}
 ```
 
-The system remains stable while new notification strategies can be seamlessly added, demonstrating the Open/Closed Principle. This design ensures backward compatibility and allows the codebase to evolve without breaking existing functionality.
+The system remains stable while new subsystem features can be seamlessly added, demonstrating the Open/Closed Principle. This design ensures backward compatibility and allows the codebase to evolve without breaking existing functionality.
 
 ---
 
