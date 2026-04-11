@@ -11,19 +11,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-/**
- * InventoryViewController handles all view-related requests for inventory management
- * Serves HTML templates through Thymeleaf
- * 
- * Key Responsibilities:
- * - Fetch data from services
- * - Prepare model for template rendering
- * - Route user interface requests
- * 
- * Design Principles:
- * - Single Responsibility: Only handles view logic, no business logic
- * - Dependency Injection: Services injected through constructor
- */
 @Controller
 @RequestMapping("/inventory")
 public class InventoryViewController {
@@ -36,13 +23,6 @@ public class InventoryViewController {
         this.supplierService = supplierService;
     }
 
-    /**
-     * Inventory Dashboard - Overview of products and suppliers
-     * Shows stats: total products, low stock count, total suppliers
-     * 
-     * @param model Thymeleaf model to pass data to template
-     * @return inventory/dashboard.html
-     */
     @GetMapping
     public String inventoryDashboard(Model model) {
         List<Product> allProducts = productService.getAllProducts();
@@ -59,13 +39,6 @@ public class InventoryViewController {
         return "inventory/dashboard";
     }
 
-    /**
-     * Products List - Detailed view of all products
-     * Shows stock levels, categories, and supplier information
-     * 
-     * @param model Thymeleaf model to pass data to template
-     * @return inventory/products.html
-     */
     @GetMapping("/products")
     public String productsPage(Model model) {
         List<Product> products = productService.getAllProducts();
@@ -88,13 +61,6 @@ public class InventoryViewController {
         return "inventory/products";
     }
 
-    /**
-     * Suppliers List - Detailed view of all suppliers
-     * Shows supplier information and products supplied
-     * 
-     * @param model Thymeleaf model to pass data to template
-     * @return inventory/suppliers.html
-     */
     @GetMapping("/suppliers")
     public String suppliersPage(Model model) {
         List<Supplier> suppliers = supplierService.getAllSuppliers();
