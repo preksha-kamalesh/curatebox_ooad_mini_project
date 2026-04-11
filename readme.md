@@ -220,40 +220,67 @@ This ownership was end-to-end (model, repository, service, controller, and UI), 
 - UI: Suppliers management page with statistics
 - Outcome: complete CRUD operations for supplier management
 
-4. Low Stock Alerts (Observer Pattern)
-- InventoryService: Subject that notifies observers when stock ≤ 10 units
+4. Low Stock Alerts (via Facade)
+- InventoryFacade: Coordinates notification logic
+- InventoryService: Manages stock levels and triggers alerts
 - IInventoryObserver: Interface defining observer contract
 - LowStockAlertObserver: Implementation that logs low stock alerts
-- Outcome: automatic notifications when products reach critical stock levels
+- Outcome: automatic notifications when products reach critical stock levels through unified Facade interface
 
 5. Product-Supplier Relationships
 - API: Assigning suppliers to products during creation and editing
-- Service: Managing ManyToOne relationship between Product and Supplier
+- Service: Managing ManyToOne relationship between Product and Supplier via Facade
 - UI: Dropdown and input fields for supplier selection
 - Outcome: maintains referential integrity between products and suppliers
 
 ### Analysis and Design Models
 
-### Observer Design Pattern Diagram
+### Facade Design Pattern Diagram
 ```mermaid
 classDiagram
+    class ProductController {
+        -InventoryFacade facade
+        +getAllProducts()
+        +createProduct(dto)
+        +updateProduct(id, dto)
+        +updateStock(id, quantity)
+        +deleteProduct(id)
+    }
+    class InventoryFacade {
+        -ProductService productService
+        -SupplierService supplierService
+        -InventoryService inventoryService
+        +createProductWithInventory(dto, supplierId, stock)
+        +updateStockWithNotification(productId, quantity)
+        +getAllProductsWithStock()
+        +getLowStockProducts()
+        +updateProductWithSupplier(id, product, supplierId)
+        +deleteProduct(id)
+    }
+    class ProductService {
+        +createProduct(dto)
+        +updateProduct(id, dto)
+        +deleteProduct(id)
+        +getProductById(id)
+        +getAllProducts()
+    }
+    class SupplierService {
+        +createSupplier(dto)
+        +getSupplierById(id)
+        +getAllSuppliers()
+        +updateSupplier(id, dto)
+    }
     class InventoryService {
         -List~IInventoryObserver~ observers
-        +registerObserver(observer)
-        +unregisterObserver(observer)
-        +notifyObservers()
-        +updateStock(productId, quantity)
-    }
-    class IInventoryObserver {
-        <<interface>>
-        +onLowStock(product)
-    }
-    class LowStockAlertObserver {
-        +onLowStock(product)
+        +updateStock(product, quantity)
+        +attach(observer)
+        +detach(observer)
     }
     
-    InventoryService --> IInventoryObserver
-    IInventoryObserver <|.. LowStockAlertObserver
+    ProductController --> InventoryFacade : uses
+    InventoryFacade --> ProductService : coordinates
+    InventoryFacade --> SupplierService : coordinates
+    InventoryFacade --> InventoryService : coordinates
 ```
 
 ### Domain Class Diagram
