@@ -103,7 +103,6 @@ public class BoxService implements IBoxService {
             throw new IllegalArgumentException("Shipping status is required");
         }
 
-        // Normalize user input so API callers can send values in mixed case.
         String normalized = status.trim().toUpperCase();
         if (!ALLOWED_SHIPPING_STATUSES.contains(normalized)) {
             throw new IllegalArgumentException("Unsupported shipping status: " + status);

@@ -29,7 +29,6 @@ public class Admin {
         if (username == null || rawPassword == null) {
             return false;
         }
-        // Keep auth check inside the entity so login rule stays close to admin data.
         return this.username.equals(username) && BCrypt.checkpw(rawPassword, this.passwordHash);
     }
 

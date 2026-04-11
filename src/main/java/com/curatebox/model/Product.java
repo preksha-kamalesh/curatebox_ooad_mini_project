@@ -51,7 +51,6 @@ public class Product {
     public void notifyLowStock() {
     }
 
-    // Getters and Setters
     
     public Long getProductId() {
         return productId;
