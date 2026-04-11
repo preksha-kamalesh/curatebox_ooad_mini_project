@@ -4,7 +4,6 @@ import com.curatebox.dto.ProductDTO;
 import com.curatebox.dto.SupplierDTO;
 import com.curatebox.model.Product;
 import com.curatebox.model.Supplier;
-import com.curatebox.service.observer.IInventoryObserver;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
  * - **Subsystems**:
  *   - ProductService: Handles product CRUD operations
  *   - SupplierService: Handles supplier CRUD operations
- *   - InventoryService: Handles stock management and observer notifications
+ *   - InventoryService: Handles stock management and low stock checks
  * - **Clients**: ProductController, InventoryViewController - use only the Facade
  * 
  * Benefits:
@@ -94,11 +93,11 @@ public class InventoryFacade {
     }
 
     /**
-     * Facade Method: Update product stock and trigger notifications if stock is low
+     * Facade Method: Update product stock and handle low stock checks
      * 
      * Coordinates with InventoryService to:
      * 1. Update the stock quantity
-     * 2. Automatically notify all registered observers if stock falls below threshold
+     * 2. Check if stock falls below threshold for alerts
      *
      * @param productId Product ID to update
      * @param quantity Quantity delta (positive for restock, negative for usage)
@@ -108,6 +107,13 @@ public class InventoryFacade {
     public Product updateStockWithNotification(Long productId, int quantity) {
         Product product = productService.getProductById(productId);
         inventoryService.updateStock(product, quantity);
+        
+        // Check for low stock condition (can be used for logging, alerts, etc.)
+        if (inventoryService.isLowStock(product)) {
+            System.out.println("[LOW STOCK ALERT] Product: " + product.getProductName() + 
+                             " | Stock: " + product.getStockQuantity());
+        }
+        
         return productService.getProductById(productId);
     }
 
@@ -136,26 +142,6 @@ public class InventoryFacade {
         return allProducts.stream()
                 .filter(p -> p.getStockQuantity() <= threshold)
                 .toList();
-    }
-
-    /**
-     * Facade Method: Register an observer for inventory notifications
-     * 
-     * Simplifies observer management by hiding InventoryService details
-     *
-     * @param observer Observer to register for low-stock events
-     */
-    public void registerInventoryObserver(IInventoryObserver observer) {
-        inventoryService.attach(observer);
-    }
-
-    /**
-     * Facade Method: Unregister an observer from inventory notifications
-     *
-     * @param observer Observer to unregister
-     */
-    public void unregisterInventoryObserver(IInventoryObserver observer) {
-        inventoryService.detach(observer);
     }
 
     /**

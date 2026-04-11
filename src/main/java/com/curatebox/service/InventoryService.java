@@ -2,6 +2,90 @@ package com.curatebox.service;
 
 import com.curatebox.model.Product;
 import com.curatebox.repository.ProductRepository;
+import java.util.List;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * InventoryService manages inventory and stock operations
+ * 
+ * SUBSYSTEM COMPONENT OF FACADE PATTERN
+ * ====================================
+ * This service is one of the hidden subsystems coordinated by InventoryFacade.
+ * It provides core inventory management functionality that the Facade simplifies.
+ * 
+ * Responsibilities:
+ * - Update product stock quantities
+ * - Check for low stock conditions
+ * - Retrieve inventory information
+ * 
+ * **NEVER accessed directly by clients - always through InventoryFacade**
+ * 
+ * Access Pattern:
+ * ProductController → InventoryFacade → InventoryService
+ */
+@Service
+public class InventoryService implements IInventoryService {
+
+    private static final int LOW_STOCK_THRESHOLD = 10;
+
+    private final ProductRepository productRepository;
+
+    public InventoryService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
+
+    /**
+     * Update product stock quantity
+     * Used internally by Facade to modify inventory levels
+     *
+     * @param product Product to update
+     * @param quantityDelta Quantity change (positive for restock, negative for usage)
+     */
+    @Transactional
+    @Override
+    public void updateStock(Product product, int quantityDelta) {
+        product.updateStock(quantityDelta);
+        productRepository.save(product);
+    }
+
+    /**
+     * Check if a product has low stock
+     * Used by Facade to determine if alerts should be triggered
+     *
+     * @param product Product to check
+     * @return True if stock is at or below threshold
+     */
+    public boolean isLowStock(Product product) {
+        return product.getStockQuantity() <= LOW_STOCK_THRESHOLD;
+    }
+
+    /**
+     * Get all products with low stock
+     * Used by Facade to retrieve low-stock inventory
+     *
+     * @return List of products with stock <= threshold
+     */
+    public List<Product> getLowStockProducts() {
+        List<Product> allProducts = productRepository.findAll();
+        return allProducts.stream()
+                .filter(this::isLowStock)
+                .toList();
+    }
+
+    /**
+     * Get low stock threshold value
+     *
+     * @return Current low stock threshold
+     */
+    public int getLowStockThreshold() {
+        return LOW_STOCK_THRESHOLD;
+    }
+}
+package com.curatebox.service;
+
+import com.curatebox.model.Product;
+import com.curatebox.repository.ProductRepository;
 import com.curatebox.service.observer.IInventoryObserver;
 import com.curatebox.service.observer.LowStockAlertObserver;
 import jakarta.annotation.PostConstruct;
