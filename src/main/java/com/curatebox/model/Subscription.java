@@ -9,13 +9,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.PostLoad;
-import jakarta.persistence.PostPersist;
-import jakarta.persistence.PostUpdate;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import java.time.LocalDate;
-import com.curatebox.model.state.*;
 
 @Entity
 @Table(name = "subscriptions")
@@ -37,45 +32,6 @@ public class Subscription {
 
     private LocalDate startDate;
     private LocalDate endDate;
-
-    @Transient
-    private SubscriptionState state;
-
-    @PostLoad
-    @PostPersist
-    @PostUpdate
-    public void initState() {
-        if (this.status == SubscriptionStatus.ACTIVE) {
-            this.state = new ActiveState();
-        } else if (this.status == SubscriptionStatus.PAUSED) {
-            this.state = new PausedState();
-        } else if (this.status == SubscriptionStatus.CANCELLED) {
-            this.state = new CancelledState();
-        }
-    }
-
-    public void pause() {
-        if (state == null) initState();
-        this.state.pause(this);
-    }
-
-    public void resume() {
-        if (state == null) initState();
-        this.state.resume(this);
-    }
-
-    public void cancel() {
-        if (state == null) initState();
-        this.state.cancel(this);
-    }
-
-    public SubscriptionState getState() {
-        return state;
-    }
-
-    public void setState(SubscriptionState state) {
-        this.state = state;
-    }
 
     public boolean isActive() {
         return status == SubscriptionStatus.ACTIVE;

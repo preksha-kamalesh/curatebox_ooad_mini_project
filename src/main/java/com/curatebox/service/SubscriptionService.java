@@ -4,6 +4,9 @@ import com.curatebox.model.Customer;
 import com.curatebox.model.Subscription;
 import com.curatebox.repository.CustomerRepository;
 import com.curatebox.repository.SubscriptionRepository;
+import com.curatebox.service.command.CancelSubscriptionCommand;
+import com.curatebox.service.command.PauseSubscriptionCommand;
+import com.curatebox.service.command.ResumeSubscriptionCommand;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,21 +36,21 @@ public class SubscriptionService {
     @Transactional
     public Subscription pauseSubscription(Long subscriptionId) {
         Subscription subscription = getSubscription(subscriptionId);
-        subscription.pause();
+        new PauseSubscriptionCommand().execute(subscription);
         return subscriptionRepository.save(subscription);
     }
 
     @Transactional
     public Subscription resumeSubscription(Long subscriptionId) {
         Subscription subscription = getSubscription(subscriptionId);
-        subscription.resume();
+        new ResumeSubscriptionCommand().execute(subscription);
         return subscriptionRepository.save(subscription);
     }
 
     @Transactional
     public Subscription cancelSubscription(Long subscriptionId) {
         Subscription subscription = getSubscription(subscriptionId);
-        subscription.cancel();
+        new CancelSubscriptionCommand().execute(subscription);
         return subscriptionRepository.save(subscription);
     }
 

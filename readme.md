@@ -83,41 +83,32 @@ classDiagram
     CustomerPreference "*" -- "1" PreferenceOption : references >
 ```
 
-### State Design Pattern Diagram
+### Design Pattern Diagram
 ```mermaid
 classDiagram
-    class Subscription {
-        -SubscriptionState state
-        +pause()
-        +resume()
-        +cancel()
-    }
-    class SubscriptionState {
+    class SubscriptionCommand {
         <<interface>>
-        +pause(Subscription context)
-        +resume(Subscription context)
-        +cancel(Subscription context)
+        +execute(Subscription subscription)
     }
-    class ActiveState {
-        +pause()
-        +resume()
-        +cancel()
+    class PauseSubscriptionCommand {
+        +execute(Subscription subscription)
     }
-    class PausedState {
-        +pause()
-        +resume()
-        +cancel()
+    class ResumeSubscriptionCommand {
+        +execute(Subscription subscription)
     }
-    class CancelledState {
-        +pause()
-        +resume()
-        +cancel()
+    class CancelSubscriptionCommand {
+        +execute(Subscription subscription)
+    }
+    class SubscriptionService {
+        +pauseSubscription(Long subscriptionId)
+        +resumeSubscription(Long subscriptionId)
+        +cancelSubscription(Long subscriptionId)
     }
     
-    Subscription "1" *-- "1" SubscriptionState : delegates behavior to >
-    SubscriptionState <|.. ActiveState : implements
-    SubscriptionState <|.. PausedState : implements
-    SubscriptionState <|.. CancelledState : implements
+    SubscriptionCommand <|.. PauseSubscriptionCommand : implements
+    SubscriptionCommand <|.. ResumeSubscriptionCommand : implements
+    SubscriptionCommand <|.. CancelSubscriptionCommand : implements
+    SubscriptionService --> SubscriptionCommand : executes >
 ```
 
 ### Technical Evidence (My Module)
@@ -167,8 +158,8 @@ This satisfies the "Use of MVC Architecture Pattern" criterion.
 ## Design Pattern + Principle Justification 
 
 ### Design Pattern Contribution
-**State Design Pattern**: I implemented the State Pattern to accurately and safely manage the lifecycle of a `Subscription`. Instead of using simple status manipulations spread across the `SubscriptionService`, the `Subscription` entity delegates behavior (`pause()`, `resume()`, `cancel()`) to a dedicated `SubscriptionState` interface. Concrete state classes (`ActiveState`, `PausedState`, `CancelledState`) encapsulate the specific logic and transition rules required for each state, ensuring illegal state changes (e.g., attempting to resume a cancelled subscription) are natively prevented.
-Supporting files: `Subscription`, `SubscriptionState`, `ActiveState`, `PausedState`, `CancelledState`.
+**Command Design Pattern**: I implemented the Command Pattern to accurately and safely manage the lifecycle actions of a `Subscription`. Instead of embedding complex state transition validation inside the `Subscription` entity or scattering it across the service, the `SubscriptionService` executes standalone `SubscriptionCommand` objects (`PauseSubscriptionCommand`, `ResumeSubscriptionCommand`, `CancelSubscriptionCommand`). These commands encapsulate the specific logic and validation rules required for each action, ensuring illegal state changes (e.g., attempting to resume a cancelled subscription) are safely prevented while keeping the entity acting as a pure data model.
+Supporting files: `SubscriptionCommand`, `PauseSubscriptionCommand`, `ResumeSubscriptionCommand`, `CancelSubscriptionCommand`.
 
 ### Design Principle Contribution
 I applied SRP (Single Responsibility Principle):
