@@ -70,7 +70,6 @@ public class ViewController {
                 return "redirect:/admin/login";
             }
 
-            // Single source of truth for admin session checks across web routes.
             session.setAttribute("isAdminLoggedIn", true);
             session.setAttribute("adminUsername", username);
             return "redirect:/dashboard";

@@ -34,7 +34,7 @@ public class Admin {
     }
 
     public void updateLastLogin() {
-        // This timestamp is useful for dashboard audit visibility.
+
         this.lastLogin = LocalDateTime.now();
     }
 

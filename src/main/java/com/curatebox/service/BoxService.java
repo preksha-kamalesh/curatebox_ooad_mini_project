@@ -68,7 +68,6 @@ public class BoxService implements IBoxService {
             throw new IllegalArgumentException("Curation date is required");
         }
 
-        // Pull active subscriptions once so each customer gets curated in this run.
         List<Subscription> active = subscriptionRepository.findByStatus(SubscriptionStatus.ACTIVE);
         List<Product> available = productRepository.findAll().stream().filter(Product::isInStock).toList();
 
@@ -82,7 +81,6 @@ public class BoxService implements IBoxService {
             for (Product product : curated) {
                 BoxContent content = boxFactory.createBoxContent(box, product, 1);
                 contents.add(content);
-                // Inventory updates stay behind an abstraction to keep service-level DIP clean.
                 inventoryService.updateStock(product, -1);
             }
 

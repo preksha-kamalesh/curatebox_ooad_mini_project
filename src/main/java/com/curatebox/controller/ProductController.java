@@ -91,7 +91,6 @@ public class ProductController {
             if (quantity == null) {
                 return ResponseEntity.badRequest().build();
             }
-            // Facade coordinates the update and notifies observers
             Product updated = inventoryFacade.updateStockWithNotification(id, quantity);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException ex) {

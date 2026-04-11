@@ -49,7 +49,6 @@ public class CustomerService {
         subscription.setStatus(SubscriptionStatus.ACTIVE);
         subscription.setStartDate(LocalDate.now());
 
-        // Establish bi-directional relationship
         customer.setSubscription(subscription);
 
         return customerRepository.save(customer);

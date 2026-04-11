@@ -30,7 +30,6 @@ public class AdminController {
             String username = request.get("username");
             String password = request.get("password");
 
-            // Controller delegates auth rules to service abstraction (DIP).
             boolean success = adminAuthService.login(username, password);
             if (!success) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid credentials"));

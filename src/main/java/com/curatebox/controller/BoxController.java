@@ -31,7 +31,6 @@ public class BoxController {
     @PostMapping("/generate")
     public ResponseEntity<?> generateMonthlyBoxes(@RequestParam String date) {
         try {
-            // Keep date parsing at the edge so service receives a typed LocalDate.
             LocalDate parsedDate = LocalDate.parse(date);
             boxService.generateMonthlyBoxes(parsedDate);
             return ResponseEntity.ok(Map.of("message", "Monthly boxes generated for " + parsedDate));

@@ -26,7 +26,6 @@ public class AdminAuthService implements IAdminAuthService {
             return false;
         }
 
-        // Keep login side effects in one place instead of spreading across controllers.
         admin.updateLastLogin();
         adminRepository.save(admin);
         return true;
