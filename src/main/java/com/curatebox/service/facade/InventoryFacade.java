@@ -1,10 +1,13 @@
-package com.curatebox.service;
+package com.curatebox.service.facade;
 
 import com.curatebox.dto.ProductDTO;
 import com.curatebox.dto.SupplierDTO;
 import com.curatebox.model.Product;
 import com.curatebox.model.Supplier;
 import com.curatebox.repository.ProductRepository;
+import com.curatebox.service.InventoryService;
+import com.curatebox.service.ProductService;
+import com.curatebox.service.SupplierService;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

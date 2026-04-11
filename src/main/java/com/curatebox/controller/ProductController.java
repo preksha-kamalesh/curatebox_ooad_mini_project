@@ -2,7 +2,7 @@ package com.curatebox.controller;
 
 import com.curatebox.dto.ProductDTO;
 import com.curatebox.model.Product;
-import com.curatebox.service.InventoryFacade;
+import com.curatebox.service.facade.InventoryFacade;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
