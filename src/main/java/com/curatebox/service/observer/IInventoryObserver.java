@@ -6,24 +6,31 @@ import com.curatebox.model.Product;
  * IInventoryObserver defines the contract for observers in the Observer Pattern
  * Used by InventoryService to notify multiple observers of low stock events
  * 
- * OBSERVER PATTERN - Observer Interface
+ * SUBSYSTEM COMPONENT OF FACADE PATTERN
  * ====================================
- * This is the Observer/Listener interface in the Observer design pattern
+ * **IMPORTANT**: Observer Pattern is a SUPPORTING PATTERN used internally.
+ * The PRIMARY design pattern for this module is FACADE PATTERN (InventoryFacade).
  * 
- * Role:
+ * This interface is part of the complex subsystem that InventoryFacade hides/coordinates:
+ * - Facade Pattern (PRIMARY): InventoryFacade is the main design pattern providing unified interface
+ * - Observer Pattern (SUPPORTING): Used internally by InventoryService for notifications
+ * - This interface (HELPER): Part of the subsystem hidden behind Facade
+ * 
+ * Observer Role (as subsystem component):
  * - Defines the callback method that all observers must implement
  * - Enables InventoryService to notify observers without knowing their concrete types
- * - Promotes loose coupling between the subject and its observers
+ * - Promotes loose coupling between InventoryService and observers
  * 
- * Implementations:
- * - LowStockAlertObserver: Logs low stock alerts to console
- * - (Can be extended with): EmailNotificationObserver, SMSAlertObserver, AdminDashboardUpdater, etc.
+ * Implementations (Hidden behind Facade):
+ * - LowStockAlertObserver: Logs low stock alerts
+ * - Future: EmailNotificationObserver, SMSAlertObserver, AdminDashboardUpdater, etc.
  * 
  * Design Benefits:
  * - New observer types can be added without modifying InventoryService
  * - Each observer handles notification independently
- * - Follows Open/Closed Principle
- */
+ * - Follows Open/Closed Principle (for extensibility within subsystem)
+ * 
+ * **Access Pattern**: Clients (ProductController) ONLY access through InventoryFacade.\n * The Facade coordinates when and how observers are notified.\n */
 public interface IInventoryObserver {
     
     /**

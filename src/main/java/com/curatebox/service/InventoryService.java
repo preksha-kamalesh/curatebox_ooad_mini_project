@@ -11,13 +11,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * InventoryService implements the Observer Design Pattern
- * Serves as the Subject/Publisher in the Observer pattern
+ * InventoryService manages inventory operations and stock notifications
+ * Serves as the Subject/Publisher in the Observer pattern (SUPPORTING pattern)
  * 
- * DESIGN PATTERN: Observer Pattern (Behavioral Pattern)
- * =====================================================
- * Purpose: Define a one-to-many dependency where if a subject changes state,
- *          all its observers are notified automatically
+ * SUBSYSTEM COMPONENT OF FACADE PATTERN
+ * ====================================
+ * **IMPORTANT**: Observer Pattern is a SUPPORTING PATTERN used internally.
+ * The PRIMARY design pattern for this module is FACADE PATTERN (InventoryFacade).
+ * 
+ * This service is one of the hidden subsystems coordinated by InventoryFacade:
+ * - Facade Pattern (PRIMARY): InventoryFacade provides unified interface hiding this complexity
+ * - Observer Pattern (SUPPORTING): Used internally by InventoryService for notifications
+ * - This class (SUBSYSTEM): Manages stock and coordinates observer notifications
+ * 
+ * SUPPORTING PATTERN: Observer Pattern (Behavioral Pattern)
+ * =========================================================
+ * Purpose: Define a one-to-many dependency where if stock changes,
+ *          all registered observers are notified automatically
  * 
  * Implementation Details:
  * 1. Maintains a list of registered observers (IInventoryObserver implementations)
@@ -26,22 +36,25 @@ import org.springframework.transaction.annotation.Transactional;
  *    - Each observer can react independently (e.g., send alert, log, notify admin)
  * 3. New observers can be attached/detached without modifying InventoryService
  * 
- * Participants:
+ * Subsystem Participants:
  * - Subject (InventoryService): Maintains observer list, triggers notifications
  * - Observer Interface (IInventoryObserver): Defines notification contract
  * - Concrete Observer (LowStockAlertObserver): Implements specific notification logic
  * 
  * Benefits:
- * - Loose Coupling: Inventory service doesn't need to know observer details
+ * - Loose Coupling: Internal service doesn't need to know observer details
  * - Open/Closed Principle: New observers can be added without modifying existing code
- * - Extensibility: Easy to add new notification types (email, SMS, push notifications)
+ * - Extensibility: Easy to add new notification types behind Facade
  * 
- * Usage Flow:
- * 1. Admin calls PUT /api/products/{id}/stock to update stock quantity
- * 2. InventoryService.updateStock() is called
- * 3. If stock <= 10, notifyObservers() is called
- * 4. Each observer's onLowStock() method is invoked
- * 5. LowStockAlertObserver logs the alert message
+ * Facade Access Flow:
+ * 1. Client calls ProductController endpoint
+ * 2. ProductController calls InventoryFacade method
+ * 3. InventoryFacade internally calls this InventoryService.updateStock()
+ * 4. If stock <= 10, notifyObservers() is called (internal subsystem behavior)
+ * 5. Each observer's onLowStock() method is invoked
+ * 6. LowStockAlertObserver logs the alert
+ * 
+ * **NEVER accessed directly by clients - always through InventoryFacade**
  */
 @Service
 public class InventoryService implements IInventoryService {

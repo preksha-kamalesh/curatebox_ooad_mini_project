@@ -7,17 +7,23 @@ import org.springframework.stereotype.Component;
  * LowStockAlertObserver is a concrete implementation of the Observer pattern
  * Handles low stock notifications by logging alerts
  * 
- * OBSERVER PATTERN - Concrete Observer
- * ===================================
- * Purpose: React to low stock events by logging alert messages
+ * SUBSYSTEM COMPONENT OF FACADE PATTERN
+ * ====================================
+ * **IMPORTANT**: Observer Pattern is a SUPPORTING PATTERN used internally.
+ * The PRIMARY design pattern for this module is FACADE PATTERN (InventoryFacade).
  * 
- * This observer:
- * - Implements IInventoryObserver interface
+ * This is one concrete observer implementation that InventoryFacade internally manages:
+ * - Facade Pattern (PRIMARY): InventoryFacade coordinates between ProductService, SupplierService, InventoryService
+ * - Observer Pattern (SUPPORTING): Used internally by InventoryService for notifications
+ * - This class (HELPER): Concrete observer implementation, part of subsystem
+ * 
+ * Concrete Observer Responsibilities:
+ * - Implements IInventoryObserver interface (part of subsystem)
  * - Gets notified by InventoryService when stock is low
  * - Logs formatted alert message with product details
  * 
  * Current Implementation: Console logging
- * Future Enhancement Possibilities:
+ * Future Enhancement Possibilities (Behind Facade):
  * - Send email notifications to suppliers
  * - Update admin dashboard in real-time
  * - Send SMS alerts to warehouse managers
@@ -25,7 +31,9 @@ import org.springframework.stereotype.Component;
  * - Trigger automatic reorder process
  * 
  * Note: Spring @Component makes this a singleton bean, automatically
- * injected into InventoryService on application startup
+ * injected into InventoryService on application startup.
+ * **Access Pattern**: Never accessed directly by clients.
+ * Facade (InventoryFacade) manages observer lifecycle and notifications.
  */
 @Component
 public class LowStockAlertObserver implements IInventoryObserver {
