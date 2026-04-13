@@ -620,7 +620,7 @@ This ownership is end-to-end for the assigned classes and includes model behavio
 
 ### Analysis and Design Models
 
-#### Curation Template Method Diagram
+#### Curation Builder Pattern Diagram
 ```mermaid
 classDiagram
     class ICurationStrategy {
@@ -628,20 +628,28 @@ classDiagram
         +curateBox(customer, availableProducts) List~Product~
     }
 
-    class AbstractCurationTemplate {
-        -minProducts int
-        -maxProducts int
-        +curateBox(customer, availableProducts) List~Product~
-        #filterEligibleProducts(products, dislikes) List~Product~
-        #rankProducts(customer, eligibleProducts, likes, dislikes) List~Product~
-    }
-
     class PreferenceBasedCuration {
-        +rankProducts(customer, eligibleProducts, likes, dislikes) List~Product~
+        -MIN_PRODUCTS int
+        -MAX_PRODUCTS int
+        +curateBox(customer, availableProducts) List~Product~
     }
 
-    ICurationStrategy <|.. AbstractCurationTemplate
-    AbstractCurationTemplate <|-- PreferenceBasedCuration
+    class CurationSelection {
+        -products List~Product~
+        +getProducts() List~Product~
+    }
+
+    class CurationSelection.Builder {
+        +availableProducts(products) Builder
+        +dislikes(dislikes) Builder
+        +bounds(min, max) Builder
+        +ranking(comparator) Builder
+        +build() CurationSelection
+    }
+
+    ICurationStrategy <|.. PreferenceBasedCuration
+    PreferenceBasedCuration --> CurationSelection.Builder : uses
+    CurationSelection.Builder --> CurationSelection : builds
 ```
 
 #### Monthly Box and Box Content Diagram
@@ -672,22 +680,21 @@ classDiagram
 I applied **Information Expert** by placing core responsibility in the classes that hold the required data:
 1. `MonthlyBox` owns box-content aggregation and shipping-status normalization because it has `boxContents`, `shippingStatus`, and `shippedAt`.
 2. `BoxContent` owns quantity validation because it directly stores `quantity`.
-3. `AbstractCurationTemplate` owns curation workflow orchestration because it has the min/max selection constraints and curation steps.
+3. `CurationSelection.Builder` owns curation selection assembly (filtering, ranking, bounds) because it directly receives the required construction inputs.
 
 This keeps behavior close to data and avoids scattering domain rules into controllers.
 
-#### Design Pattern Used: Template Method Pattern
-I implemented **Template Method** using `AbstractCurationTemplate`:
-1. Fixed algorithm skeleton in `curateBox(...)`:
-   - validate input
-   - extract likes/dislikes
-   - filter eligible products
-   - rank products
-   - apply bounds
-2. Variable step delegated to subclass via `rankProducts(...)`.
-3. `PreferenceBasedCuration` customizes ranking logic without changing the pipeline.
+#### Design Pattern Used: Builder Pattern
+I implemented **Builder** using `CurationSelection.Builder`:
+1. Curation assembly is built step-by-step with fluent methods:
+    - set available products
+    - set dislikes
+    - set min/max bounds
+    - set ranking comparator
+2. `build()` performs filtering, ranking, and size-bound enforcement in one place and returns `CurationSelection`.
+3. `PreferenceBasedCuration` remains focused on extracting preferences and defining ranking, while object assembly logic stays in the builder.
 
-This pattern is different from already used patterns (State, Observer, Factory, Strategy) and adds extensibility for future curation variants.
+This pattern is different from the already used patterns (Factory, Facade, Command, Strategy) and keeps curation construction extensible.
 
 ### Technical Evidence (My Module)
 
@@ -697,8 +704,11 @@ This pattern is different from already used patterns (State, Observer, Factory, 
 
 #### Service Strategy Layer
 1. `ICurationStrategy`
-2. `AbstractCurationTemplate`
-3. `PreferenceBasedCuration`
+2. `PreferenceBasedCuration`
+
+#### Service Builder Layer
+3. `CurationSelection`
+4. `CurationSelection.Builder`
 
 #### Service / Controller Integration
 1. `IBoxService.previewCuration(...)`

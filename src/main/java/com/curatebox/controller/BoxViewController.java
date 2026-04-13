@@ -68,6 +68,7 @@ public class BoxViewController {
     public String updateShippingStatus(
             @RequestParam Long boxId,
             @RequestParam String status,
+            @RequestParam(required = false) Long customerId,
             RedirectAttributes redirectAttributes) {
         try {
             boxService.updateShippingStatus(boxId, status);
@@ -76,16 +77,27 @@ public class BoxViewController {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
 
+        if (customerId != null) {
+            redirectAttributes.addAttribute("customerId", customerId);
+        }
+
         return "redirect:/boxes/dashboard";
     }
 
     @PostMapping("/dashboard/ship")
-    public String shipBox(@RequestParam Long boxId, RedirectAttributes redirectAttributes) {
+    public String shipBox(
+            @RequestParam Long boxId,
+            @RequestParam(required = false) Long customerId,
+            RedirectAttributes redirectAttributes) {
         try {
             boxService.shipBox(boxId);
             redirectAttributes.addFlashAttribute("successMessage", "Box marked as shipped.");
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+
+        if (customerId != null) {
+            redirectAttributes.addAttribute("customerId", customerId);
         }
 
         return "redirect:/boxes/dashboard";
